@@ -238,6 +238,32 @@ td select { background: var(--surface-2); border: 1px solid var(--line); border-
 @media (max-width: 640px) { .add-action { grid-template-columns: minmax(0, 1fr); } }
 .section-gap { display: flex; flex-direction: column; gap: 16px; }
 
+/* ---- Stage 6: demo guide and feedback ---- */
+.hero-intro { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; display: grid; gap: 8px; }
+.hero-intro h2 { margin: 0; font-size: 22px; letter-spacing: -0.01em; text-wrap: balance; }
+.hero-intro p { margin: 0; color: var(--muted); max-width: 70ch; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: step; }
+.step { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; counter-increment: step; }
+.step::before { content: counter(step); width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.step h3 { margin: 0 0 2px; font-size: 14.5px; }
+.step p { margin: 0; font-size: 13.5px; }
+.step .why { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+.step .as { font-size: 11.5px; font-family: var(--font-mono); color: var(--muted); }
+@media (max-width: 560px) { .step { grid-template-columns: 30px minmax(0, 1fr); } .step > .btn { grid-column: 2; justify-self: start; } }
+.rating { display: flex; flex-wrap: wrap; gap: 6px; }
+.rating label { display: inline-flex; }
+.rating input { position: absolute; opacity: 0; pointer-events: none; }
+.rating span { min-width: 38px; text-align: center; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; cursor: pointer; background: var(--surface-2); font-variant-numeric: tabular-nums; }
+.rating input:checked + span { background: var(--accent); color: var(--surface); border-color: var(--accent); font-weight: 700; }
+.rating input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fq { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.fq:last-child { border-bottom: 0; }
+.fq > b { font-size: 13.5px; }
+.fq small { color: var(--muted); }
+textarea.fb { width: 100%; min-height: 72px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; color: var(--fg); font: inherit; resize: vertical; }
+a.btn { color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; }
+.copybox { width: 100%; min-height: 120px; font-family: var(--font-mono); font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px; color: var(--fg); }
+
 @media (max-width: 900px) {
   .map-layout { grid-template-columns: minmax(0, 1fr); }
 }
@@ -540,18 +566,20 @@ const ROLES = [
   { id: 'admin', label: 'Administrator', partner: null }
 ];
 const VIEWS = [
+  { id: 'guide', label: 'Start here', stage: 6 },
   { id: 'map', label: 'Ward map', stage: 1 },
   { id: 'reports', label: 'Reports', stage: 1 },
   { id: 'chat', label: 'WhatsApp and USSD', stage: 2 },
   { id: 'queue', label: 'Partner queues', stage: 3 },
   { id: 'pickers', label: 'Pickers and recyclables', stage: 4 },
   { id: 'review', label: 'Review and forum', stage: 5 },
+  { id: 'feedback', label: 'Feedback', stage: 6 },
   { id: 'tables', label: 'Data tables', stage: 1, admin: true },
   { id: 'settings', label: 'Settings', stage: 1, admin: true }
 ];
-const BUILT = 5;
+const BUILT = 6;
 
-const state = { role: 'committee', ward: 'W1', view: 'map', filter: 'all', selected: null, table: 'reports', confirmReset: false };
+const state = { role: 'committee', ward: 'W1', view: 'guide', filter: 'all', selected: null, table: 'reports', confirmReset: false };
 try { const s = JSON.parse(sessionStorage.getItem('bwh-ui') || '{}'); Object.assign(state, s, { confirmReset: false }); } catch (e) {}
 const persistUi = () => { try { sessionStorage.setItem('bwh-ui', JSON.stringify({ role: state.role, ward: state.ward, view: state.view, table: state.table })); } catch (e) {} };
 const currentRole = () => ROLES.find(r => r.id === state.role) || ROLES[0];
@@ -567,7 +595,7 @@ wardSel.addEventListener('change', () => { state.ward = wardSel.value; state.sel
 
 /* ================= Nav ================= */
 function renderNav() {
-  const groups = [['Working now', VIEWS.filter(v => v.stage <= BUILT && !v.admin)], ['Coming next', VIEWS.filter(v => v.stage > BUILT)], ['Setup', VIEWS.filter(v => v.admin)]];
+  const groups = [['Demo', VIEWS.filter(v => v.stage <= BUILT && !v.admin)], ['Coming next', VIEWS.filter(v => v.stage > BUILT)], ['Setup', VIEWS.filter(v => v.admin)]].filter(g => g[1].length);
   document.getElementById('nav').innerHTML = groups.map(([label, items]) =>
     `<div class="rail-label">${label}</div>` + items.map(v => {
       const built = v.stage <= BUILT;
@@ -760,7 +788,6 @@ function renderSettings(el) {
     ['Second demo ward', 'Cowdray Park plus a contrasting ward, such as the city centre or a low-density suburb.'],
     ['Name and colours', 'Keep “Bulawayo Waste Hub” or choose another name; pick colours no existing organisation uses.'],
     ['isiNdebele and Shona wording', 'A native speaker to check the bot’s messages (needed by Stage 2).'],
-    ['GitHub and Netlify accounts', 'So the code and demo link belong to you.'],
     ['First audience', 'Which stakeholder sees the demo first.']
   ];
   el.innerHTML = `
@@ -791,7 +818,7 @@ const viewEl = document.getElementById('view');
 function render() {
   roleSel.value = state.role; wardSel.value = state.ward;
   renderNav();
-  ({ map: renderMap, reports: renderReports, chat: renderChat, queue: renderQueue, pickers: renderPickers, review: renderReview, tables: renderTables, settings: renderSettings }[state.view] || renderMap)(viewEl);
+  ({ map: renderMap, reports: renderReports, chat: renderChat, queue: renderQueue, pickers: renderPickers, review: renderReview, guide: renderGuide, feedback: renderFeedback, tables: renderTables, settings: renderSettings }[state.view] || renderMap)(viewEl);
   afterRender();
   persistUi();
 }
@@ -1824,6 +1851,124 @@ function renderForum(tabs, flash) {
       state.flash = `Action marked ${e.target.value.toLowerCase()}.`;
       render();
     }
+  });
+}
+
+
+/* ================= Stage 6: demo guide and stakeholder feedback ================= */
+const GUIDE = [
+  { t: 'See the ward at a glance', d: 'Open the Cowdray Park map. Point out the pins, the overdue red rings and the merged reports at the market.', why: 'Shared information system: every partner sees the same picture.', go: { role: 'committee', view: 'map', ward: 'W1' } },
+  { t: 'A resident reports on WhatsApp', d: 'As a resident, report bags of rubbish at the market stalls. The report is merged with the existing case instead of duplicating it.', why: 'Reporting on any day, not only clean-up Friday (research question 2).', go: { role: 'resident', view: 'chat', ward: 'W1' } },
+  { t: 'A basic phone, in isiNdebele', d: 'On the basic phone, dial the code, choose isiNdebele, and report somewhere new. Watch the system route it to a partner.', why: 'Inclusive tools: no smartphone or data needed, local languages.', go: { role: 'resident', view: 'chat', ward: 'W1' } },
+  { t: 'The Council fixes it', d: 'As City Council, open the queue: start work, mark fixed with an after photo. Then show the "fixed" message on both phones.', why: 'Clear roles and response times from the Partnership Charter (research question 3).', go: { role: 'bcc', view: 'queue', ward: 'W1' } },
+  { t: 'Residents check the site', d: 'As the residents’ association, confirm a fix or tap "Still there" to send it back with 24 hours.', why: 'Shared accountability and legitimacy: residents verify, not only officials.', go: { role: 'association', view: 'queue', ward: 'W1' } },
+  { t: 'Pickers are paid for recovery', d: 'As a waste picker, log 30 kg of PET plastic. As the business buyer, confirm it and pay by (simulated) mobile money.', why: 'Formal inclusion of waste pickers and business (hypothesis 3).', go: { role: 'picker', view: 'pickers', ward: 'W1' } },
+  { t: 'The monthly ward review', d: 'Open the review pack: the AI summary, how each partner did, repeat sites, and the action tracker. Add an action for the church.', why: 'Turns the monthly clean-up into a monthly cycle of review and action (hypothesis 2).', go: { role: 'committee', view: 'review', ward: 'W1' } },
+  { t: 'The city forum and the survey', d: 'Switch to Forum overview: wards side by side and the indicators waiting for the survey baseline.', why: 'Questionnaire Sections B–E become the framework’s indicators.', go: { role: 'committee', view: 'review', ward: 'W1', tab: 'forum' } },
+  { t: 'Ask for feedback', d: 'Hand the device round and ask each stakeholder to fill in the short feedback form.', why: 'Stakeholder buy-in is part of making the framework acceptable.', go: { role: 'committee', view: 'feedback', ward: 'W1' } }
+];
+function renderGuide(el) {
+  el.innerHTML = `<div class="hero-intro">
+      <h2>A shared system for a cleaner Bulawayo</h2>
+      <p>Residents report dumped waste by WhatsApp or a basic phone. Each report goes to the partner responsible, is fixed, checked by residents, and reviewed every month by the ward committee and the city forum. This demo uses invented data only.</p>
+    </div>
+    <div class="view-head"><div><h2>Demo guide</h2><p>A ten-minute walkthrough for stakeholder meetings. Each “Go” button opens the right screen with the right role. Reset the demo data in Settings before each meeting.</p></div></div>
+    <ol class="steps">${GUIDE.map((g, i) => `<li class="step"><div><h3>${esc(g.t)}</h3><p>${esc(g.d)}</p><p class="why">Why it matters: ${esc(g.why)}</p><span class="as">Viewing as: ${esc(ROLES.find(r => r.id === g.go.role).label)}</span></div><button class="btn btn-primary" data-guide="${i}">Go</button></li>`).join('')}</ol>`;
+}
+
+const FB_KEY = 'bwh-feedback-v1';
+const FB_TYPES = ['City Council (BCC)', 'EMA', 'Church or faith group', "Residents' association", 'Business or recycler', 'Waste picker', 'Resident', 'NGO or university', 'Other'];
+const FB_Q = [
+  ['clear', 'The app is easy to understand'],
+  ['coord', 'It would help partners coordinate in my ward'],
+  ['fair', 'It treats waste pickers and residents fairly'],
+  ['use', 'My organisation would use it']
+];
+let fbList = [];
+try { fbList = JSON.parse(localStorage.getItem(FB_KEY) || '[]') || []; } catch (e) { fbList = []; }
+const fbSave = () => { try { localStorage.setItem(FB_KEY, JSON.stringify(fbList)); } catch (e) {} };
+const fb = { type: FB_TYPES[0], org: '', r: {}, missing: '', worry: '', last: null, showAll: false };
+function fbText(f) {
+  return `Bulawayo Waste Hub demo feedback\nFrom: ${f.type}${f.org ? ', ' + f.org : ''}\n` + FB_Q.map(([k, q]) => `${q}: ${f.r[k] || '-'}/5`).join('\n') + `\nWhat is missing: ${f.missing || '-'}\nConcerns: ${f.worry || '-'}`;
+}
+function fbCsv() {
+  const q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+  return ['date,stakeholder,organisation,' + FB_Q.map(x => x[0]).join(',') + ',missing,concerns']
+    .concat(fbList.map(f => [new Date(f.time).toISOString().slice(0, 10), q(f.type), q(f.org)].concat(FB_Q.map(([k]) => f.r[k] || ''), [q(f.missing), q(f.worry)]).join(','))).join('\n');
+}
+function renderFeedback(el) {
+  const flash = state.flash ? `<div class="flash" role="status">${esc(state.flash)}</div>` : ''; state.flash = null;
+  const avg = k => { const v = fbList.map(f => f.r[k]).filter(Boolean); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '—'; };
+  el.innerHTML = `<div class="view-head"><div><h2>Stakeholder feedback</h2><p>Takes two minutes. Pass the device round at a meeting: each answer is kept on this device until Karl copies them out.</p></div></div>
+    ${flash}
+    <div class="two-col">
+      <section class="panel"><h3>Your feedback</h3>
+        <form id="fb-form" class="section-gap" style="gap:0">
+          <div class="fq"><label for="fb-type"><b>I am from</b></label><select id="fb-type" class="btn" style="text-align:left">${FB_TYPES.map(t => `<option ${fb.type === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+            <label for="fb-org"><small>Organisation or ward (optional)</small></label><input id="fb-org" class="btn" style="text-align:left;cursor:text" value="${esc(fb.org)}" autocomplete="off"></div>
+          ${FB_Q.map(([k, q]) => `<div class="fq" role="radiogroup" aria-label="${esc(q)}"><b>${esc(q)}</b><small>1 = strongly disagree, 5 = strongly agree</small>
+            <div class="rating">${[1, 2, 3, 4, 5].map(n => `<label><input type="radio" name="fb-${k}" value="${n}" ${fb.r[k] === n ? 'checked' : ''}><span>${n}</span></label>`).join('')}</div></div>`).join('')}
+          <div class="fq"><label for="fb-missing"><b>What is missing?</b></label><textarea id="fb-missing" class="fb">${esc(fb.missing)}</textarea></div>
+          <div class="fq"><label for="fb-worry"><b>What worries you about it?</b></label><textarea id="fb-worry" class="fb">${esc(fb.worry)}</textarea></div>
+          <div class="fq" style="border:0"><button class="btn btn-primary" type="submit">Save my feedback</button></div>
+        </form></section>
+      <div class="section-gap">
+        ${fb.last ? `<section class="panel"><h3>Thank you</h3><p class="empty" style="margin:0">Your answers are saved on this device. To send them yourself, copy them or share on WhatsApp.</p>
+          <textarea class="copybox" id="fb-one" readonly>${esc(fbText(fb.last))}</textarea>
+          <div class="actions"><button class="btn" data-fb="copyone">Copy</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent(fbText(fb.last))}" target="_blank" rel="noopener">Share on WhatsApp</a></div></section>` : ''}
+        <section class="panel"><h3>Collected on this device (${fbList.length})</h3>
+          ${fbList.length ? `<dl class="kv">${FB_Q.map(([k, q]) => `<dt>${esc(q)}</dt><dd>${avg(k)} / 5</dd>`).join('')}</dl>
+            <div class="table-wrap"><table><thead><tr><th>Stakeholder</th><th>Scores</th><th>Missing</th></tr></thead><tbody>${fbList.slice().reverse().map(f => `<tr><td>${esc(f.type)}</td><td class="mono">${FB_Q.map(([k]) => f.r[k] || '-').join(' ')}</td><td style="white-space:normal;min-width:160px">${esc(f.missing || '—')}</td></tr>`).join('')}</tbody></table></div>
+            <p class="hint" style="margin:0">For Karl: copy all answers as a spreadsheet (CSV) and paste them into Excel or Google Sheets.</p>
+            ${fb.showAll ? `<textarea class="copybox" id="fb-all" readonly>${esc(fbCsv())}</textarea>` : ''}
+            <div class="actions"><button class="btn" data-fb="copyall">Copy all as spreadsheet</button>${fb.confirmClear ? `<span>Delete all ${fbList.length} answers on this device?</span><button class="btn btn-primary" data-fb="clearyes">Delete</button><button class="btn" data-fb="clearno">Cancel</button>` : `<button class="btn" data-fb="clear">Clear answers</button>`}</div>`
+          : '<p class="empty" style="margin:0">No answers yet. Feedback is kept separately from the demo data, so resetting the demo does not delete it.</p>'}
+        </section>
+      </div>
+    </div>`;
+}
+function copyText(text, boxId) {
+  const done = () => { state.flash = 'Copied. Paste it wherever you need it.'; render(); };
+  const fallback = () => { fb.showAll = true; render(); const b = document.getElementById(boxId); if (b) { b.focus(); b.select(); } state.flash = null; };
+  try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+}
+
+{
+  const v = document.getElementById('view');
+  v.addEventListener('click', e => {
+    const g = e.target.closest('[data-guide]');
+    if (g) {
+      const s = GUIDE[Number(g.dataset.guide)].go;
+      state.role = s.role; state.ward = s.ward; state.view = s.view; state.filter = 'all'; state.selected = null;
+      if (s.view === 'review') rv.tab = s.tab || 'pack';
+      render(); window.scrollTo(0, 0); return;
+    }
+    const a = e.target.closest('[data-fb]'); if (!a) return;
+    const cmd = a.dataset.fb;
+    if (cmd === 'copyone') return copyText(fbText(fb.last), 'fb-one');
+    if (cmd === 'copyall') { fb.showAll = true; return copyText(fbCsv(), 'fb-all'); }
+    if (cmd === 'clear') fb.confirmClear = true;
+    if (cmd === 'clearno') fb.confirmClear = false;
+    if (cmd === 'clearyes') { fbList = []; fbSave(); fb.confirmClear = false; fb.last = null; state.flash = 'All feedback on this device was deleted.'; }
+    render();
+  });
+  v.addEventListener('input', e => {
+    const id = e.target.id;
+    if (id === 'fb-org') fb.org = e.target.value; if (id === 'fb-missing') fb.missing = e.target.value; if (id === 'fb-worry') fb.worry = e.target.value;
+  });
+  v.addEventListener('change', e => {
+    if (e.target.id === 'fb-type') fb.type = e.target.value;
+    const m = /^fb-(\w+)$/.exec(e.target.name || ''); if (m) fb.r[m[1]] = Number(e.target.value);
+  });
+  v.addEventListener('submit', e => {
+    if (e.target.id !== 'fb-form') return;
+    e.preventDefault();
+    if (!FB_Q.some(([k]) => fb.r[k])) { state.flash = 'Please choose a score for at least one statement before saving.'; render(); return; }
+    const entry = { time: Date.now(), type: fb.type, org: fb.org.trim(), r: Object.assign({}, fb.r), missing: fb.missing.trim(), worry: fb.worry.trim() };
+    fbList.push(entry); fbSave();
+    fb.last = entry; fb.org = ''; fb.r = {}; fb.missing = ''; fb.worry = '';
+    state.flash = 'Saved. Thank you. Pass the device to the next person.';
+    render(); window.scrollTo(0, 0);
   });
 }
 

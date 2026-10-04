@@ -22,4 +22,4 @@ Open `index.html` in any web browser. There is nothing to install.
 3. Partner queues and fixing (done)
 4. Pickers and recyclables (done)
 5. Review pack and forum view (done)
-6. Polish and stakeholder feedback
+6. Demo guide and stakeholder feedback (done)
