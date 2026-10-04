@@ -168,12 +168,75 @@ tr.clickable:hover td { background: var(--surface-2); }
 .feed li.k-merge { border-color: var(--st-progress); }
 .feed li.k-route { border-color: var(--st-assigned); }
 .feed li.k-new { border-color: var(--st-new); }
-.feed li.k-picker { border-color: var(--st-fixed); }
+.feed li.k-picker, .feed li.k-fixed { border-color: var(--st-fixed); }
 .feed time { display: block; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .linkish { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .detail-photo { width: 100%; max-width: 240px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
 .detail-photo svg, .detail-photo img { display: block; width: 100%; height: auto; }
 .pin.fresh circle.core { stroke: var(--fg); stroke-width: 3; stroke-dasharray: 4 3; }
+
+/* ---- Stage 3: partner queues ---- */
+.queue { display: flex; flex-direction: column; gap: 10px; }
+.case { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: var(--radius); padding: 12px; }
+.case.st-assigned { border-left-color: var(--st-assigned); }
+.case.st-in_progress { border-left-color: var(--st-progress); }
+.case.st-new { border-left-color: var(--st-new); }
+.case.st-fixed { border-left-color: var(--st-fixed); }
+.case.is-overdue { border-left-color: var(--st-overdue); }
+.case-photo { border-radius: 6px; overflow: hidden; border: 1px solid var(--line); align-self: start; }
+.case-photo svg, .case-photo img { display: block; width: 100%; height: auto; }
+.case-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.case-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
+.case-top b { font-size: 14.5px; }
+.due { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.due.late { color: var(--st-overdue); }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 2px; }
+.subform { display: flex; flex-direction: column; gap: 8px; background: var(--surface-2); border-radius: 6px; padding: 10px; }
+.subform select { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; color: var(--fg); font: inherit; }
+.after-choice { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.after-choice .photo-btn { width: 110px; }
+.after-choice .photo-btn[aria-pressed="true"] { outline: 2px solid var(--accent); }
+.flash { background: var(--accent-soft); color: var(--fg); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 13.5px; }
+.before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-width: 320px; }
+.before-after figure { margin: 0; }
+.before-after figcaption { font-size: 11px; color: var(--muted); }
+.before-after .detail-photo { max-width: none; }
+.sms { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
+.sms b { display: block; font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+details.recent summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+@media (max-width: 480px) { .case { grid-template-columns: 72px minmax(0, 1fr); } }
+
+/* ---- Stage 4: pickers and recyclables ---- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.kpi b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.kpi span { font-size: 12.5px; color: var(--muted); }
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; align-items: start; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.form-grid select, .form-grid input { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; color: var(--fg); font: inherit; min-width: 0; }
+.mini-bar { height: 8px; border-radius: 4px; background: var(--accent); }
+.mini-track { background: var(--surface-2); border-radius: 4px; width: 100%; min-width: 80px; }
+.pstatus { font-size: 12px; font-weight: 600; }
+.pstatus.wait { color: var(--st-assigned); }
+.pstatus.ok { color: var(--st-fixed); }
+.pstatus.disputed { color: var(--st-overdue); }
+
+/* ---- Stage 5: review pack and forum ---- */
+.summary { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+.summary p { margin: 6px 0 0; max-width: 75ch; }
+.summary .ref { letter-spacing: 0.06em; text-transform: uppercase; }
+.astat { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.astat.done { color: var(--st-fixed); }
+.astat.late { color: var(--st-overdue); }
+.astat.prog { color: var(--st-progress); }
+.astat.todo { color: var(--muted); }
+td select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; color: var(--fg); font: inherit; font-size: 12.5px; }
+.add-action { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.add-action label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.add-action input, .add-action select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; color: var(--fg); font: inherit; min-width: 0; }
+@media (max-width: 640px) { .add-action { grid-template-columns: minmax(0, 1fr); } }
+.section-gap { display: flex; flex-direction: column; gap: 16px; }
 
 @media (max-width: 900px) {
   .map-layout { grid-template-columns: minmax(0, 1fr); }
@@ -393,7 +456,7 @@ function buildSeed() {
   const recoveries = [];
   for (let i = 0; i < 12; i++) {
     const pk = pickers[Math.floor(rnd() * 5)];
-    recoveries.push({ picker: pk.id, material: pk.materials.split(', ')[0], kg: Math.round(8 + rnd() * 45), buyer: 'P-BIZ', date: now - Math.floor(rnd() * 28) * DAY });
+    recoveries.push({ id: 'RC-S' + String(i + 1).padStart(3, '0'), picker: pk.id, material: pk.materials.split(', ')[0], kg: Math.round(8 + rnd() * 45), buyer: 'P-BIZ', date: now - Math.floor(rnd() * 28) * DAY });
   }
   recoveries.sort((a, b) => b.date - a.date);
 
@@ -402,11 +465,11 @@ function buildSeed() {
     { id: 'M2', ward: 'W2', date: firstFriday(now, -1) + 2 * HOUR * 8, title: 'Ward review after clean-up day', attended: ['P-BCC', 'P-RA2'] }
   ];
   const actions = [
-    { meeting: 'M1', text: 'Daily bin collection at the market stalls', owner: 'P-BCC', due: now + 5 * DAY, status: 'In progress' },
-    { meeting: 'M1', text: 'Church to host a Saturday plastics drop-off', owner: 'P-CH', due: now + 9 * DAY, status: 'Not started' },
-    { meeting: 'M1', text: 'Evening patrol of the stream crossing', owner: 'P-RA', due: now - 2 * DAY, status: 'Overdue' },
-    { meeting: 'M1', text: 'Register five more pickers', owner: 'P-PG', due: now + 14 * DAY, status: 'In progress' },
-    { meeting: 'M2', text: 'Confirm second-ward boundary and committee', owner: 'P-BCC', due: now + 7 * DAY, status: 'Not started' }
+    { id: 'A-001', meeting: 'M1', text: 'Daily bin collection at the market stalls', owner: 'P-BCC', due: now + 5 * DAY, status: 'In progress' },
+    { id: 'A-002', meeting: 'M1', text: 'Church to host a Saturday plastics drop-off', owner: 'P-CH', due: now + 9 * DAY, status: 'Not started' },
+    { id: 'A-003', meeting: 'M1', text: 'Evening patrol of the stream crossing', owner: 'P-RA', due: now - 2 * DAY, status: 'Overdue' },
+    { id: 'A-004', meeting: 'M1', text: 'Register five more pickers', owner: 'P-PG', due: now + 14 * DAY, status: 'In progress' },
+    { id: 'A-005', meeting: 'M2', text: 'Confirm second-ward boundary and committee', owner: 'P-BCC', due: now + 7 * DAY, status: 'Not started' }
   ];
 
   return { version: 1, seededAt: now, wards, partners, routing_rules, indicators, reports, report_events, collection_schedule, pickers, recoveries, meetings, actions };
@@ -486,7 +549,7 @@ const VIEWS = [
   { id: 'tables', label: 'Data tables', stage: 1, admin: true },
   { id: 'settings', label: 'Settings', stage: 1, admin: true }
 ];
-const BUILT = 2;
+const BUILT = 5;
 
 const state = { role: 'committee', ward: 'W1', view: 'map', filter: 'all', selected: null, table: 'reports', confirmReset: false };
 try { const s = JSON.parse(sessionStorage.getItem('bwh-ui') || '{}'); Object.assign(state, s, { confirmReset: false }); } catch (e) {}
@@ -640,7 +703,8 @@ function detailPanel(r) {
       ${r.fixed ? `<dt>Fixed</dt><dd>${fmtDate(r.fixed)} (${Math.round((r.fixed - r.created) / HOUR)} h)</dd>` : ''}
       <dt>Duplicates</dt><dd>${dups.length ? dups.map(d => d.id).join(', ') + ' merged' : 'None'}</dd>
     </dl>
-    <div class="detail-photo">${photoMarkup(r)}</div>
+    ${r.status === 'fixed' ? `<div class="before-after"><figure><div class="detail-photo">${photoMarkup(r)}</div><figcaption>Before</figcaption></figure><figure><div class="detail-photo">${afterMarkup(r)}</div><figcaption>After</figcaption></figure></div>` : `<div class="detail-photo">${photoMarkup(r)}</div>`}
+    ${role.id !== 'resident' ? `<div><button class="btn" data-q="openq:${r.id}">Open in partner queue</button></div>` : ''}
     <div><div class="ref" style="margin-bottom:6px">AI TAGS · ${r.ai_confidence}% CONFIDENT</div>
       <div class="tags"><span class="tag">${esc(CATEGORIES[r.category])}</span><span class="tag">${esc(r.size)}</span>${r.hazards.map(h => `<span class="tag" style="border-color:var(--st-overdue)">${esc(HAZARDS[h])}</span>`).join('')}</div></div>
     <div><div class="ref" style="margin-bottom:6px">HISTORY</div>
@@ -727,7 +791,7 @@ const viewEl = document.getElementById('view');
 function render() {
   roleSel.value = state.role; wardSel.value = state.ward;
   renderNav();
-  ({ map: renderMap, reports: renderReports, chat: renderChat, tables: renderTables, settings: renderSettings }[state.view] || renderMap)(viewEl);
+  ({ map: renderMap, reports: renderReports, chat: renderChat, queue: renderQueue, pickers: renderPickers, review: renderReview, tables: renderTables, settings: renderSettings }[state.view] || renderMap)(viewEl);
   afterRender();
   persistUi();
 }
@@ -773,6 +837,7 @@ function photoSvg(key) {
     plastics: [[40, 84], [56, 90], [72, 82], [88, 92], [104, 86], [62, 76], [96, 76], [120, 94]].map(([x, y], i) => `<rect x="${x}" y="${y}" width="10" height="22" rx="4" fill="${['#64b5f6', '#4fc3f7', '#e0f2f1', '#81d4fa'][i % 4]}" transform="rotate(${(i * 37) % 90 - 45} ${x + 5} ${y + 11})"/>`).join(''),
     tyres: '<circle cx="58" cy="88" r="20" fill="#212121"/><circle cx="58" cy="88" r="9" fill="#cdd8de"/><circle cx="98" cy="90" r="19" fill="#2b2b2b"/><circle cx="98" cy="90" r="8" fill="#b79f86"/><ellipse cx="78" cy="70" rx="20" ry="8" fill="#1a1a1a"/><ellipse cx="78" cy="70" rx="9" ry="3.5" fill="#cdd8de"/>',
     garden: '<path d="M30 100 Q60 70 90 96 Q110 70 136 100 Z" fill="#5d8a3a"/><path d="M44 96 Q58 78 72 94 M96 92 Q112 78 124 96" stroke="#3d6b26" stroke-width="3" fill="none"/><path d="M60 100 L100 80" stroke="#6d4c41" stroke-width="4"/>',
+    cleared: '<rect x="112" y="62" width="20" height="30" rx="3" fill="#2e7d32"/><rect x="110" y="58" width="24" height="5" rx="2" fill="#1b5e20"/><path d="M40 96 Q70 92 96 98" stroke="#a1887f" stroke-width="2" fill="none" opacity="0.6"/><path d="M60 104 l18 -30" stroke="#8d6e63" stroke-width="3"/><path d="M52 106 q8 -6 18 -2 l-4 6 z" fill="#d7b26a"/>',
     chemicals: '<rect x="44" y="64" width="26" height="40" rx="3" fill="#1e5aa8"/><rect x="78" y="68" width="26" height="36" rx="3" fill="#2a6fc4"/><path d="M104 104 Q118 108 136 104" stroke="#6a8f2a" stroke-width="6" fill="none"/><path d="M57 72 l8 14 h-16 z" fill="#ffd54f"/><text x="57" y="84" font-size="9" text-anchor="middle" fill="#212121" font-weight="700">!</text>'
   };
   return `<svg viewBox="0 0 160 120" role="img" aria-label="${esc((PHOTOS[key] || {}).label || 'Photo')}">${ground}${art[key] || ''}</svg>`;
@@ -1019,6 +1084,7 @@ function waAction(a, label) {
     waMe(label);
     if (v === 'no') { waBot(t.cancelled); waMenu(); return; }
     const res = submitReport(wa.draft);
+    notifyTargets[res.report.id] = { channel: 'WhatsApp', lang: wa.lang || 'en' };
     waBot(t.thanks(res.report.id));
     if (res.mergedInto) waBot(t.merged(res.mergedInto.id));
     else waBot(t.routed(store.get('partners', res.rule.partner).name, res.rule.hours));
@@ -1100,6 +1166,7 @@ const UT = {
     thanks: (id) => `Thank you. Ref ${id}.`, added: (p) => `Added to existing case ${p}.`, sent: (w) => `Sent to ${w}.`,
     sms: 'You will get an SMS when it is fixed.', cancelled: 'Cancelled. Nothing was sent.', bye: 'Thank you. Goodbye.',
     notFound: 'Reference not found.', merged: (p) => `(merged into ${p})`, overdue: 'overdue',
+    fixedSms: (id) => `Waste Hub: report ${id} has been fixed. Thank you for reporting.`,
     registered: (id, m) => `Registered as ${id}.\nBuyers of ${m} will contact you by SMS.`, ended: '[Session ended]'
   },
   nd: {
@@ -1114,6 +1181,7 @@ const UT = {
     thanks: (id) => `Siyabonga. Inombolo ${id}.`, added: (p) => `Kuhlanganiswe lo ${p}.`, sent: (w) => `Kuthunyelwe ku ${w}.`,
     sms: 'Uzathola i-SMS nxa sekulungisiwe.', cancelled: 'Kuyekelwe.', bye: 'Siyabonga. Sala kahle.',
     notFound: 'Inombolo kayitholakalanga.', merged: (p) => `(kuhlanganiswe lo ${p})`, overdue: 'sekudlule isikhathi',
+    fixedSms: (id) => `Waste Hub: umbiko ${id} usulungisiwe. Siyabonga.`,
     registered: (id, m) => `Ubhalisiwe ngu ${id}.\nAbathengi be ${m} bazakuthinta nge-SMS.`, ended: '[Kuphelile]'
   },
   sn: {
@@ -1128,6 +1196,7 @@ const UT = {
     thanks: (id) => `Ndatenda. Nhamba ${id}.`, added: (p) => `Yabatanidzwa ne ${p}.`, sent: (w) => `Yatumirwa ku ${w}.`,
     sms: 'Uchawana SMS kana zvagadziriswa.', cancelled: 'Zvakanzurwa.', bye: 'Ndatenda. Fambai zvakanaka.',
     notFound: 'Nhamba haina kuwanikwa.', merged: (p) => `(yabatanidzwa ne ${p})`, overdue: 'yanonoka',
+    fixedSms: (id) => `Waste Hub: mushumo ${id} wagadziriswa. Tatenda.`,
     registered: (id, m) => `Wanyoreswa se ${id}.\nVatengi ve ${m} vachakubata ne SMS.`, ended: '[Zvapera]'
   }
 };
@@ -1172,6 +1241,7 @@ function ussdSend() {
     case 'r_confirm':
       if (n === 1) {
         const res = submitReport(u.draft);
+        notifyTargets[res.report.id] = { channel: 'USSD', lang: u.lang };
         return ussdEnd(L.thanks(res.report.id) + '\n' + (res.mergedInto ? L.added(res.mergedInto.id) : L.sent(partnerShort(res.rule.partner))) + '\n' + L.sms);
       }
       if (n === 2) return ussdEnd(L.cancelled);
@@ -1187,6 +1257,7 @@ function ussdSend() {
         const ids = store.all('pickers').map(p => Number(p.id.slice(3)) || 0);
         const id = 'PK-' + String(Math.max(0, ...ids) + 1).padStart(3, '0');
         store.insert('pickers', { id, ward: state.ward, phone: 'basic phone (USSD)', materials: mat, registered: Date.now() });
+        pickerSms[id] = true;
         logFeed('picker', `New waste picker ${id} registered by USSD in ${store.get('wards', state.ward).name} (${mat}).`, null);
         return ussdEnd(L.registered(id, mat));
       }
@@ -1202,6 +1273,7 @@ function renderUssd() {
     <div class="ussd-body">
       ${LANG_NAMES[ussd.lang] ? `<div class="lang-note" style="padding:0">${LANG_NAMES[ussd.lang]} wording is a draft, to be checked by a native speaker.</div>` : ''}
       <div class="ussd-screen" aria-live="polite">${esc(ussd.text)}</div>
+      ${smsInbox.slice(0, 2).map(m => `<div class="sms"><b>SMS \u00b7 ${new Date(m.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</b>${esc(m.text)}</div>`).join('')}
       <form class="ussd-entry" id="ussd-form">
         <input id="ussd-input" inputmode="tel" autocomplete="off" value="${esc(ussd.input)}" aria-label="Keypad entry" placeholder="${ussd.screen === 'idle' || ussd.screen === 'end' ? USSD_CODE : 'Enter a number'}">
         <button class="btn btn-primary" type="submit">Send</button>
@@ -1227,7 +1299,7 @@ function renderChat(el) {
       </section>
     </div>`;
 }
-function resetSims() { waReset(); ussdReset(); feed.length = 0; }
+function resetSims() { waReset(); ussdReset(); feed.length = 0; stage3Reset(); }
 function afterRender() {
   const c = document.getElementById('wa-chat');
   if (c) c.scrollTop = c.scrollHeight;
@@ -1267,6 +1339,491 @@ viewEl_stage2: {
       img.src = reader.result;
     };
     reader.readAsDataURL(f);
+  });
+}
+
+
+/* ================= Stage 3: partner queues and fixing ================= */
+const notifyTargets = {};   // report id -> { channel, lang } for reports sent from the demo phones
+const smsInbox = [];        // text messages received by the demo basic phone
+Object.assign(T.en, { fixedNote: (id, who) => `Good news: report ${id} has been marked fixed by ${who}. Thank you for reporting.` });
+Object.assign(T.nd, { fixedNote: (id, who) => `Izindaba ezinhle: umbiko ${id} usulungisiwe ngu ${who}. Siyabonga ngokubika.` });
+Object.assign(T.sn, { fixedNote: (id, who) => `Mashoko akanaka: mushumo ${id} wagadziriswa na ${who}. Tatenda nekuzivisa.` });
+
+function lastOf(id, actions) {
+  return store.where('report_events', e => e.report === id && actions.includes(e.action)).sort((a, b) => b.time - a.time)[0];
+}
+function isVerified(r) { const l = lastOf(r.id, ['Fixed', 'Verified', 'Reopened']); return !!l && l.action === 'Verified'; }
+function dueText(r) {
+  if (r.status === 'fixed') return 'Fixed ' + ago(r.fixed);
+  if (!r.due) return 'Not routed yet';
+  const d = r.due - Date.now(), h = Math.abs(d) / HOUR;
+  const t = h < 48 ? Math.max(1, Math.round(h)) + ' h' : Math.round(h / 24) + ' days';
+  return d < 0 ? 'Overdue by ' + t : 'Due in ' + t;
+}
+function actorLabel() { const r = currentRole(); return r.partner ? partnerShort(r.partner) : r.label; }
+
+function routeReport(id) {
+  const r = store.get('reports', id); const rule = matchRule(store.all('routing_rules'), r); const now = Date.now();
+  store.update('reports', id, { status: 'assigned', owner: rule.partner, due: now + rule.hours * HOUR });
+  addEvent(id, 'Routing', 'Assigned', 'To ' + partnerShort(rule.partner) + ', due within ' + rule.hours + ' h (rule ' + rule.id + ')');
+  logFeed('route', `${id} routed to ${partnerShort(rule.partner)} by Charter rule ${rule.id}.`, id);
+  return rule;
+}
+function startWork(id) {
+  store.update('reports', id, { status: 'in_progress' });
+  addEvent(id, actorLabel(), 'Started', '');
+  state.flash = `${id} is now in progress.`;
+}
+function reassign(id, partner) {
+  const r = store.get('reports', id); const from = partnerShort(r.owner);
+  store.update('reports', id, { owner: partner, status: 'assigned' });
+  addEvent(id, actorLabel(), 'Reassigned', `From ${from} to ${partnerShort(partner)}`);
+  logFeed('route', `${id} reassigned from ${from} to ${partnerShort(partner)}.`, id);
+  state.flash = `${id} moved to ${partnerShort(partner)}'s queue.`;
+}
+function markFixed(id, photo, upload) {
+  const r = store.get('reports', id); const now = Date.now(); const who = store.get('partners', r.owner).name;
+  store.update('reports', id, { status: 'fixed', fixed: now, fixed_photo: photo || 'cleared' });
+  if (photo === 'upload' && upload) uploads[id + ':after'] = upload;
+  addEvent(id, partnerShort(r.owner), 'Fixed', 'After photo added', now);
+  // Tell everyone who reported this site, including merged duplicates
+  const ids = [id].concat(duplicatesOf(r).map(d => d.id));
+  let wa_n = 0, sms_n = 0;
+  ids.forEach(x => {
+    const n = notifyTargets[x];
+    if (n && n.channel === 'WhatsApp') { wa.msgs.push({ from: 'bot', text: T[n.lang || 'en'].fixedNote(x, who), time: now }); wa_n++; }
+    else if (n && n.channel === 'USSD') { smsInbox.unshift({ time: now, text: (UT[n.lang] || UT.en).fixedSms(x) }); sms_n++; }
+  });
+  const others = ids.length - wa_n - sms_n;
+  addEvent(id, 'System', 'Residents notified', `${ids.length} reporter${ids.length > 1 ? 's' : ''} told it is fixed (WhatsApp or SMS)`, now + 1000);
+  logFeed('fixed', `${id} marked fixed by ${partnerShort(r.owner)}. ${ids.length} reporter${ids.length > 1 ? 's were' : ' was'} notified${wa_n || sms_n ? ` (${wa_n ? wa_n + ' on the demo WhatsApp' : ''}${wa_n && sms_n ? ', ' : ''}${sms_n ? sms_n + ' by SMS on the demo basic phone' : ''})` : ''}.`, id);
+  state.flash = `${id} marked fixed. ${ids.length} reporter${ids.length > 1 ? 's' : ''} notified${wa_n || sms_n ? '; open WhatsApp and USSD to see the message' : ''}. The residents' association will verify the site.`;
+}
+function verifyFix(id, ok) {
+  if (ok) {
+    addEvent(id, actorLabel(), 'Verified', 'Site checked and cleared');
+    state.flash = `${id} verified as cleared.`;
+  } else {
+    const r = store.get('reports', id);
+    store.update('reports', id, { status: 'assigned', fixed: null, due: Date.now() + 24 * HOUR });
+    addEvent(id, actorLabel(), 'Reopened', 'Waste still there; back to ' + partnerShort(r.owner) + ' within 24 h');
+    logFeed('merge', `${id} reopened: residents found the waste still there. Back to ${partnerShort(r.owner)}, due within 24 hours.`, id);
+    state.flash = `${id} reopened and sent back to ${partnerShort(r.owner)} with 24 hours to fix.`;
+  }
+}
+
+const WORK_PARTNERS = ['P-BCC', 'P-EMA', 'P-OP', 'P-PG', 'P-WT'];
+const sortCases = list => list.sort((a, b) => (isOverdue(b) - isOverdue(a)) || ((a.due || a.created) - (b.due || b.created)));
+const q = { tab: null, fixing: null, fixPhoto: 'cleared', fixUpload: null, reassigning: null };
+
+function caseCard(r, mode) {
+  const late = isOverdue(r);
+  const canAct = !['resident'].includes(state.role);
+  let actions = '';
+  if (q.fixing === r.id) {
+    actions = `<div class="subform"><b>Add an after photo</b>
+      <div class="after-choice">
+        <button class="photo-btn" data-fixphoto="cleared" aria-pressed="${q.fixPhoto === 'cleared'}">${photoSvg('cleared')}<span>Site cleared</span></button>
+        ${q.fixUpload ? `<button class="photo-btn" data-fixphoto="upload" aria-pressed="${q.fixPhoto === 'upload'}"><img src="${q.fixUpload}" alt="Your after photo" style="display:block;width:100%"><span>Your photo</span></button>` : ''}
+        <label class="btn attach">Use my own photo<input type="file" accept="image/*" id="fix-file"></label>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-q="confirmfix:${r.id}">Confirm fixed</button><button class="btn" data-q="cancel:">Cancel</button></div></div>`;
+  } else if (q.reassigning === r.id) {
+    actions = `<div class="subform"><label for="reassign-to"><b>Move this case to</b></label>
+      <select id="reassign-to">${WORK_PARTNERS.filter(p => p !== r.owner).map(p => `<option value="${p}">${esc(store.get('partners', p).name)}</option>`).join('')}</select>
+      <div class="actions"><button class="btn btn-primary" data-q="doreassign:${r.id}">Move case</button><button class="btn" data-q="cancel:">Cancel</button></div></div>`;
+  } else if (canAct) {
+    const b = [];
+    if (mode === 'unrouted') b.push(`<button class="btn btn-primary" data-q="route:${r.id}">Route by the Charter</button>`);
+    if (mode === 'work' && r.status === 'assigned') b.push(`<button class="btn" data-q="start:${r.id}">Start work</button>`);
+    if (mode === 'work') b.push(`<button class="btn btn-primary" data-q="fix:${r.id}">Mark fixed</button>`, `<button class="btn" data-q="reassign:${r.id}">Reassign</button>`);
+    if (mode === 'verify') b.push(`<button class="btn btn-primary" data-q="verify:${r.id}">Confirm cleared</button>`, `<button class="btn" data-q="reopen:${r.id}">Still there</button>`);
+    b.push(`<button class="linkish" data-show="${r.id}">Show on map</button>`);
+    actions = `<div class="actions">${b.join('')}</div>`;
+  }
+  const dups = duplicatesOf(r).length;
+  return `<article class="case st-${r.status}${late ? ' is-overdue' : ''}">
+    <div class="case-photo">${mode === 'verify' ? afterMarkup(r) : photoMarkup(r)}</div>
+    <div class="case-main">
+      <div class="case-top"><b>${esc(CATEGORIES[r.category])}, ${esc(r.size)}</b><span class="ref">${r.id}${dups ? ` · ${dups + 1} reports` : ''}</span></div>
+      <div>${esc(r.near)}</div>
+      ${r.hazards.length ? `<div class="tags">${r.hazards.map(h => `<span class="tag" style="border-color:var(--st-overdue)">${esc(HAZARDS[h])}</span>`).join('')}</div>` : ''}
+      <div class="due${late ? ' late' : ''}">${dueText(r)}${mode === 'verify' ? ' by ' + esc(partnerShort(r.owner)) : ''}</div>
+      ${actions}
+    </div></article>`;
+}
+function afterMarkup(r) {
+  if (r.fixed_photo === 'upload' && uploads[r.id + ':after']) return `<img src="${uploads[r.id + ':after']}" alt="After photo">`;
+  return photoSvg('cleared');
+}
+
+function renderQueue(el) {
+  const role = currentRole(), ward = store.get('wards', state.ward);
+  const reps = store.where('reports', r => r.ward === state.ward && r.status !== 'merged');
+  const open = p => reps.filter(r => r.owner === p && (r.status === 'assigned' || r.status === 'in_progress'));
+  const unrouted = reps.filter(r => r.status === 'new');
+  const toVerify = reps.filter(r => r.status === 'fixed' && !isVerified(r));
+  const flash = state.flash ? `<div class="flash" role="status">${esc(state.flash)}</div>` : '';
+  state.flash = null;
+  const head = (title, sub) => `<div class="view-head"><div><h2>${title}</h2><p>${sub}</p></div></div>${flash}`;
+  const list = (items, mode, empty) => items.length ? `<div class="queue">${sortCases(items).map(r => caseCard(r, mode)).join('')}</div>` : `<p class="empty">${empty}</p>`;
+
+  if (role.id === 'resident') { el.innerHTML = head('Partner queues', 'Residents don’t have a queue. Switch “Viewing as” to City Council, EMA or the ward committee to work cases.'); return; }
+  if (role.id === 'association') {
+    el.innerHTML = head(`Verify fixes in ${esc(ward.name)}`, 'The residents’ association checks each fixed site. Confirm it is clear, or reopen it if the waste is still there.') + list(toVerify, 'verify', 'No fixed cases are waiting for a check.');
+    return;
+  }
+  if (role.partner && !WORK_PARTNERS.includes(role.partner)) {
+    const msg = { 'P-CH': 'Churches don’t clear sites. Their tasks, such as hosting a drop-off point, come from the ward review in Stage 5.', 'P-BIZ': 'Business buyers confirm purchases from waste pickers. That comes in Stage 4.' }[role.partner] || 'No cases for this partner.';
+    el.innerHTML = head(`${esc(partnerShort(role.partner))} queue`, msg); return;
+  }
+  if (role.partner) {
+    const mine = open(role.partner);
+    const recent = reps.filter(r => r.owner === role.partner && r.status === 'fixed').sort((a, b) => b.fixed - a.fixed).slice(0, 5);
+    el.innerHTML = head(`${esc(store.get('partners', role.partner).name)}: ${mine.length} open case${mine.length === 1 ? '' : 's'}`, `Cases routed to you in ${esc(ward.name)}, overdue first. Start work, mark fixed with an after photo, or move a case to another partner.`)
+      + list(mine, 'work', 'Nothing open. Well done.')
+      + (recent.length ? `<details class="recent" style="margin-top:14px"><summary>Recently fixed (${recent.length})</summary><div class="queue" style="margin-top:8px">${recent.map(r => caseCard(r, 'done')).join('')}</div></details>` : '');
+    return;
+  }
+  // Ward committee and administrator see every queue
+  const tabs = [['unrouted', 'Not yet routed', unrouted.length]].concat(WORK_PARTNERS.map(p => [p, partnerShort(p), open(p).length]), [['verify', 'Awaiting verification', toVerify.length]]);
+  if (!q.tab || !tabs.some(t => t[0] === q.tab)) q.tab = unrouted.length ? 'unrouted' : 'P-BCC';
+  const body = q.tab === 'unrouted' ? list(unrouted, 'unrouted', 'Every report has been routed.')
+    : q.tab === 'verify' ? list(toVerify, 'verify', 'No fixed cases are waiting for a check.')
+    : list(open(q.tab), 'work', `${esc(partnerShort(q.tab))} has no open cases.`);
+  el.innerHTML = head(`Partner queues in ${esc(ward.name)}`, 'Every partner’s open cases in one place. Switch “Viewing as” to a partner to see just their own list.')
+    + `<div class="tabs" role="tablist">${tabs.map(([id, label, n]) => `<button class="tab" role="tab" data-qtab="${id}" aria-selected="${q.tab === id}">${esc(label)}<span class="count">${n}</span></button>`).join('')}</div>`
+    + (q.tab === 'unrouted' && unrouted.length > 1 ? `<div class="actions" style="margin-bottom:10px"><button class="btn" data-q="routeall:">Route all ${unrouted.length} by the Charter</button></div>` : '')
+    + body;
+}
+
+function stage3Reset() { smsInbox.length = 0; for (const k in notifyTargets) delete notifyTargets[k]; Object.assign(q, { tab: null, fixing: null, fixPhoto: 'cleared', fixUpload: null, reassigning: null }); }
+
+{
+  const v = document.getElementById('view');
+  v.addEventListener('click', e => {
+    const t = e.target;
+    const tab = t.closest('[data-qtab]'); if (tab) { q.tab = tab.dataset.qtab; q.fixing = q.reassigning = null; render(); return; }
+    const fp = t.closest('[data-fixphoto]'); if (fp) { q.fixPhoto = fp.dataset.fixphoto; render(); return; }
+    const a = t.closest('[data-q]'); if (!a) return;
+    const [cmd, id] = a.dataset.q.split(':');
+    if (cmd === 'route') { const rule = routeReport(id); state.flash = `${id} routed to ${partnerShort(rule.partner)} (rule ${rule.id}).`; }
+    if (cmd === 'routeall') { const ids = store.where('reports', r => r.ward === state.ward && r.status === 'new').map(r => r.id); ids.forEach(routeReport); state.flash = `${ids.length} reports routed by the Charter.`; }
+    if (cmd === 'start') startWork(id);
+    if (cmd === 'fix') { q.fixing = id; q.reassigning = null; q.fixPhoto = 'cleared'; q.fixUpload = null; }
+    if (cmd === 'confirmfix') { markFixed(id, q.fixPhoto, q.fixUpload); q.fixing = null; q.fixUpload = null; }
+    if (cmd === 'reassign') { q.reassigning = id; q.fixing = null; }
+    if (cmd === 'doreassign') { reassign(id, document.getElementById('reassign-to').value); q.reassigning = null; }
+    if (cmd === 'cancel') { q.fixing = q.reassigning = null; }
+    if (cmd === 'verify') verifyFix(id, true);
+    if (cmd === 'reopen') verifyFix(id, false);
+    if (cmd === 'openq') { const r = store.get('reports', id); state.view = 'queue'; q.tab = r.status === 'new' ? 'unrouted' : r.status === 'fixed' ? 'verify' : r.owner; }
+    render();
+  });
+  v.addEventListener('change', e => {
+    if (e.target.id !== 'fix-file' || !e.target.files || !e.target.files[0]) return;
+    const img = new Image(), reader = new FileReader();
+    reader.onload = () => { img.onload = () => {
+      const scale = Math.min(1, 480 / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      q.fixUpload = cv.toDataURL('image/jpeg', 0.8); q.fixPhoto = 'upload'; render();
+    }; img.src = reader.result; };
+    reader.readAsDataURL(e.target.files[0]);
+  });
+}
+
+
+/* ================= Stage 4: pickers and recyclables ================= */
+const MATERIALS = ['PET plastic', 'cans', 'scrap metal', 'cardboard'];
+const PRICE = { 'PET plastic': 0.12, cans: 0.30, 'scrap metal': 0.20, cardboard: 0.05 }; // invented example prices, US$ per kg
+const pk = { picker: '', material: 'PET plastic', kg: '', report: '', regMat: 'PET plastic', regPhone: 'basic phone (USSD)', adjusting: null };
+const recStatus = r => r.status || 'confirmed';
+const money = n => 'US$' + n.toFixed(2);
+const pickerSms = {}; // picker id -> true when registered from the demo basic phone
+
+function logRecovery(pickerId, material, kg, reportId) {
+  const rec = { id: 'RC-' + String(store.all('recoveries').length + 1).padStart(4, '0'), picker: pickerId, material, kg, buyer: 'P-BIZ', date: Date.now(), status: 'awaiting buyer', report: reportId || null };
+  store.insert('recoveries', rec);
+  if (reportId) addEvent(reportId, 'Pickers', 'Recovered', `${kg} kg of ${material} by ${pickerId}`);
+  logFeed('picker', `${pickerId} logged ${kg} kg of ${material}${reportId ? ' from ' + reportId : ''}; waiting for the buyer to confirm.`, reportId);
+  state.flash = `${kg} kg of ${material} logged for ${pickerId}. The buyer will confirm the weight and pay.`;
+}
+function updateRecovery(rec, patch) { Object.assign(rec, patch); store.update('recoveries', rec.id, patch); }
+function confirmPurchase(rec, kg) {
+  const amount = +(kg * (PRICE[rec.material] || 0.1)).toFixed(2);
+  updateRecovery(rec, { status: 'confirmed', kg, amount, paid: Date.now() });
+  if (pickerSms[rec.picker]) smsInbox.unshift({ time: Date.now(), text: `Waste Hub: ${partnerShort(rec.buyer)} confirmed ${kg} kg of ${rec.material}. ${money(amount)} sent by mobile money (demo).` });
+  logFeed('picker', `${partnerShort(rec.buyer)} confirmed ${kg} kg of ${rec.material} from ${rec.picker} and paid ${money(amount)} (simulated mobile money).`, rec.report);
+  state.flash = `Purchase confirmed: ${kg} kg, ${money(amount)} paid to ${rec.picker} by mobile money (simulated).`;
+}
+function registerPicker(material, phone) {
+  const ids = store.all('pickers').map(p => Number(p.id.slice(3)) || 0);
+  const id = 'PK-' + String(Math.max(0, ...ids) + 1).padStart(3, '0');
+  store.insert('pickers', { id, ward: state.ward, phone, materials: material, registered: Date.now() });
+  logFeed('picker', `New waste picker ${id} registered in ${store.get('wards', state.ward).name} (${material}).`, null);
+  state.flash = `${id} registered. Recognised pickers can log recovered material and be paid by registered buyers.`;
+  return id;
+}
+
+function renderPickers(el) {
+  const role = currentRole(), ward = store.get('wards', state.ward);
+  const pickers = store.where('pickers', p => p.ward === state.ward);
+  const ids = new Set(pickers.map(p => p.id));
+  const recs = store.all('recoveries').filter(r => ids.has(r.picker));
+  if (!recs.some(r => r.id)) recs.forEach((r, i) => { if (!r.id) r.id = 'RC-S' + i; });
+  const monthAgo = Date.now() - 30 * DAY;
+  const confirmed = recs.filter(r => recStatus(r) === 'confirmed');
+  const kgMonth = confirmed.filter(r => r.date > monthAgo).reduce((s, r) => s + r.kg, 0);
+  const paid = confirmed.reduce((s, r) => s + (r.amount != null ? r.amount : r.kg * (PRICE[r.material] || 0.1)), 0);
+  const pending = recs.filter(r => recStatus(r) === 'awaiting buyer' || recStatus(r) === 'disputed');
+  const byMat = MATERIALS.map(m => [m, confirmed.filter(r => r.material.toLowerCase() === m.toLowerCase()).reduce((s, r) => s + r.kg, 0)]);
+  const maxMat = Math.max(1, ...byMat.map(x => x[1]));
+  const flash = state.flash ? `<div class="flash" role="status">${esc(state.flash)}</div>` : ''; state.flash = null;
+  const canLog = ['committee', 'admin', 'picker', 'association'].includes(role.id);
+  const isBuyer = role.id === 'business' || role.id === 'admin' || role.id === 'committee';
+  const pickerCases = store.where('reports', r => r.ward === state.ward && r.owner === 'P-PG' && r.status !== 'merged');
+
+  const register = canLog ? `<section class="panel"><h3>Register a waste picker</h3>
+      <p class="empty" style="margin:0">Pickers can also register themselves from the basic phone (option 3).</p>
+      <div class="form-grid">
+        <label for="reg-mat">Main material<select id="reg-mat">${MATERIALS.map(m => `<option ${pk.regMat === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></label>
+        <label for="reg-phone">Phone<select id="reg-phone">${['basic phone (USSD)', 'smartphone (WhatsApp)'].map(m => `<option ${pk.regPhone === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></label>
+      </div>
+      <div><button class="btn btn-primary" data-pk="register">Register picker</button></div></section>` : '';
+
+  const logForm = canLog && pickers.length ? `<section class="panel"><h3>Log recovered material</h3>
+      <div class="form-grid">
+        <label for="log-picker">Picker<select id="log-picker">${pickers.map(p => `<option value="${p.id}" ${pk.picker === p.id ? 'selected' : ''}>${p.id} (${esc(p.materials)})</option>`).join('')}</select></label>
+        <label for="log-mat">Material<select id="log-mat">${MATERIALS.map(m => `<option ${pk.material === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></label>
+        <label for="log-kg">Weight (kg)<input id="log-kg" type="number" min="1" max="500" step="1" inputmode="numeric" value="${esc(pk.kg)}" placeholder="e.g. 25"></label>
+        <label for="log-report">From a reported site<select id="log-report"><option value="">Not linked to a report</option>${pickerCases.map(r => `<option value="${r.id}" ${pk.report === r.id ? 'selected' : ''}>${r.id}, ${esc(short(r.near, 28))}</option>`).join('')}</select></label>
+      </div>
+      <div><button class="btn btn-primary" data-pk="log">Log for buyer to confirm</button></div></section>` : '';
+
+  const buyerList = `<section class="panel"><h3>${isBuyer ? 'Purchases to confirm' : 'Waiting for the buyer'} (${pending.length})</h3>
+      ${pending.length ? `<div class="queue">${pending.sort((a, b) => b.date - a.date).map(r => `<div class="case" style="grid-template-columns:minmax(0,1fr)"><div class="case-main">
+          <div class="case-top"><b>${r.kg} kg ${esc(r.material)}</b><span class="ref">${r.id} · ${r.picker}</span></div>
+          <div>${r.report ? 'From ' + r.report + ' · ' : ''}${ago(r.date)} · example value ${money(r.kg * (PRICE[r.material] || 0.1))}</div>
+          <div class="pstatus ${recStatus(r) === 'disputed' ? 'disputed' : 'wait'}">${recStatus(r) === 'disputed' ? 'Weight queried by buyer' : 'Waiting for ' + esc(partnerShort(r.buyer))}</div>
+          ${isBuyer ? (pk.adjusting === r.id
+            ? `<div class="subform"><label for="adj-kg"><b>Weight on the buyer's scale (kg)</b></label><input id="adj-kg" type="number" min="1" value="${r.kg}" style="max-width:120px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)"><div class="actions"><button class="btn btn-primary" data-pk="confirmadj:${r.id}">Confirm and pay</button><button class="btn" data-pk="canceladj:">Cancel</button></div></div>`
+            : `<div class="actions"><button class="btn btn-primary" data-pk="confirm:${r.id}">Confirm ${r.kg} kg and pay</button><button class="btn" data-pk="adjust:${r.id}">Different weight</button></div>`) : ''}
+        </div></div>`).join('')}</div>` : '<p class="empty" style="margin:0">Nothing waiting.</p>'}
+      <p class="hint" style="margin:0">Payment is simulated mobile money. Prices are invented examples per kg: ${MATERIALS.map(m => `${m} ${money(PRICE[m])}`).join(', ')}.</p></section>`;
+
+  const register_table = `<section class="panel"><h3>Registered pickers in ${esc(ward.name)}</h3>
+      <div class="table-wrap"><table><thead><tr><th>Picker</th><th>Phone</th><th>Materials</th><th>Registered</th><th>Recovered (kg)</th></tr></thead><tbody>
+      ${pickers.map(p => { const kg = confirmed.filter(r => r.picker === p.id).reduce((s, r) => s + r.kg, 0); return `<tr><td class="mono">${p.id}</td><td>${esc(p.phone)}</td><td>${esc(p.materials)}</td><td>${fmtDay(p.registered)}</td><td class="num">${kg}</td></tr>`; }).join('') || '<tr><td colspan="5" class="empty">No pickers registered in this ward yet.</td></tr>'}
+      </tbody></table></div></section>`;
+
+  const materials = `<section class="panel"><h3>Confirmed recovery by material</h3>
+      <div class="table-wrap" style="border:0"><table><tbody>${byMat.map(([m, kg]) => `<tr><td>${esc(m)}</td><td style="width:50%"><div class="mini-track"><div class="mini-bar" style="width:${(kg / maxMat * 100).toFixed(0)}%"></div></div></td><td class="num">${kg} kg</td></tr>`).join('')}</tbody></table></div>
+      <p class="hint" style="margin:0">Feeds indicator C2 (pickers formally recognised) and hypothesis H3 (including pickers improves outcomes).</p></section>`;
+
+  el.innerHTML = `<div class="view-head"><div><h2>Pickers and recyclables in ${esc(ward.name)}</h2><p>Registered waste pickers log what they recover; a registered buyer confirms the weight and pays by mobile money. Every kilogram is counted towards the ward's indicators.</p></div></div>
+    ${flash}
+    <div class="kpis">
+      <div class="kpi"><b>${pickers.length}</b><span>registered pickers</span></div>
+      <div class="kpi"><b>${kgMonth} kg</b><span>confirmed in the last 30 days</span></div>
+      <div class="kpi"><b>${money(paid)}</b><span>paid to pickers (example prices)</span></div>
+      <div class="kpi"><b>${pending.length}</b><span>waiting for the buyer</span></div>
+    </div>
+    <div class="two-col">
+      ${role.id === 'business' ? buyerList + materials : (logForm || '') + buyerList}
+      ${role.id === 'business' ? register_table : register + materials + register_table}
+    </div>`;
+}
+
+{
+  const v = document.getElementById('view');
+  v.addEventListener('change', e => {
+    const id = e.target.id, val = e.target.value;
+    if (id === 'log-picker') pk.picker = val; if (id === 'log-mat') pk.material = val; if (id === 'log-report') pk.report = val;
+    if (id === 'reg-mat') pk.regMat = val; if (id === 'reg-phone') pk.regPhone = val;
+  });
+  v.addEventListener('input', e => { if (e.target.id === 'log-kg') pk.kg = e.target.value; });
+  v.addEventListener('click', e => {
+    const a = e.target.closest('[data-pk]'); if (!a) return;
+    const [cmd, id] = a.dataset.pk.split(':');
+    const findRec = rid => store.all('recoveries').find(r => r.id === rid);
+    if (cmd === 'register') registerPicker(pk.regMat, pk.regPhone);
+    if (cmd === 'log') {
+      const picker = pk.picker || (document.getElementById('log-picker') || {}).value;
+      const kg = Math.round(Number(pk.kg));
+      if (!picker || !(kg > 0 && kg <= 500)) { state.flash = 'Enter a weight between 1 and 500 kg.'; }
+      else { logRecovery(picker, pk.material, kg, pk.report || null); pk.kg = ''; pk.report = ''; }
+    }
+    if (cmd === 'confirm') { const r = findRec(id); if (r) confirmPurchase(r, r.kg); }
+    if (cmd === 'adjust') pk.adjusting = id;
+    if (cmd === 'canceladj') pk.adjusting = null;
+    if (cmd === 'confirmadj') { const r = findRec(id); const kg = Math.round(Number(document.getElementById('adj-kg').value)); if (r && kg > 0) { const logged = r.kg; confirmPurchase(r, kg); if (logged !== kg) state.flash += ` The picker logged ${logged} kg; the buyer's scale reading of ${kg} kg is what counts.`; } pk.adjusting = null; }
+    render();
+  });
+}
+
+
+/* ================= Stage 5: ward review pack and forum overview ================= */
+const rv = { tab: 'pack', text: '', owner: 'P-BCC', days: '14' };
+const isCleanupDay = t => { const d = new Date(t); return d.getDay() === 5 && d.getDate() <= 7; };
+function nextCleanupDay() { const t = firstFriday(Date.now(), 0); return t + 12 * HOUR > Date.now() ? t : firstFriday(Date.now(), 1); }
+const median = arr => { if (!arr.length) return null; const s = arr.slice().sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+
+function wardStats(wardId, days) {
+  const since = Date.now() - (days || 30) * DAY;
+  const all = store.where('reports', r => r.ward === wardId);
+  const recent = all.filter(r => r.created >= since);
+  const cases = all.filter(r => r.status !== 'merged');
+  const fixedRecent = cases.filter(r => r.status === 'fixed' && r.fixed >= since);
+  const fixHours = fixedRecent.map(r => (r.fixed - r.created) / HOUR);
+  const overdue = cases.filter(isOverdue);
+  const between = recent.filter(r => !isCleanupDay(r.created)).length;
+  const sites = {};
+  recent.forEach(r => { sites[r.near] = (sites[r.near] || 0) + 1; });
+  const hotspots = Object.entries(sites).sort((a, b) => b[1] - a[1]);
+  const channels = {}; recent.forEach(r => { channels[r.channel] = (channels[r.channel] || 0) + 1; });
+  const partners = WORK_PARTNERS.map(p => {
+    const mine = cases.filter(r => r.owner === p);
+    const fixed = mine.filter(r => r.status === 'fixed' && r.fixed >= since);
+    const onTime = fixed.filter(r => r.due && r.fixed <= r.due).length;
+    return { p, assigned: mine.filter(r => r.created >= since).length, open: mine.filter(r => r.status === 'assigned' || r.status === 'in_progress').length, fixed: fixed.length, median: median(fixed.map(r => (r.fixed - r.created) / HOUR)), overdue: mine.filter(isOverdue).length, onTime: fixed.length ? Math.round(onTime / fixed.length * 100) : null };
+  });
+  const pickerIds = new Set(store.where('pickers', p => p.ward === wardId).map(p => p.id));
+  const kg = store.all('recoveries').filter(r => pickerIds.has(r.picker) && (r.status || 'confirmed') === 'confirmed' && r.date >= since).reduce((s, r) => s + r.kg, 0);
+  const acts = wardActions(wardId);
+  return { recent, cases, fixedRecent, medianFix: median(fixHours), overdue, betweenPct: recent.length ? Math.round(between / recent.length * 100) : null, hotspots, channels, partners, pickers: pickerIds.size, kg, acts, open: cases.filter(r => r.status !== 'fixed').length };
+}
+function wardActions(wardId) {
+  const mids = new Set(store.where('meetings', m => m.ward === wardId).map(m => m.id));
+  return store.all('actions').map((a, i) => { if (!a.id) a.id = 'A-' + String(i + 1).padStart(3, '0'); return a; }).filter(a => mids.has(a.meeting));
+}
+function actionStatus(a) { if (a.status === 'Done') return 'Done'; if (a.due < Date.now()) return 'Overdue'; return a.status === 'Overdue' ? 'In progress' : a.status; }
+const ACLASS = { Done: 'done', Overdue: 'late', 'In progress': 'prog', 'Not started': 'todo' };
+
+function aiSummary(w, s) {
+  const parts = [];
+  const ch = Object.entries(s.channels).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${n} by ${c}`).join(', ');
+  parts.push(`In the last 30 days ${w.name} received ${s.recent.length} report${s.recent.length === 1 ? '' : 's'}${ch ? ` (${ch})` : ''}${s.betweenPct != null ? `, ${s.betweenPct}% of them on days other than the monthly clean-up` : ''}.`);
+  parts.push(`${s.fixedRecent.length} case${s.fixedRecent.length === 1 ? ' was' : 's were'} fixed${s.medianFix != null ? `, with a median of ${Math.round(s.medianFix)} hours from report to fix` : ''}; ${s.open} remain open and ${s.overdue.length} ${s.overdue.length === 1 ? 'is' : 'are'} overdue${s.overdue.length ? ` (${[...new Set(s.overdue.map(r => partnerShort(r.owner)))].join(', ')})` : ''}.`);
+  if (s.hotspots.length && s.hotspots[0][1] > 1) parts.push(`The busiest site was ${s.hotspots[0][0].toLowerCase()}, with ${s.hotspots[0][1]} reports; the committee may want a standing measure there rather than repeated clear-ups.`);
+  if (s.kg) parts.push(`Registered pickers recovered ${s.kg} kg of recyclables that would otherwise have gone to the dump or the landfill.`);
+  const late = s.acts.filter(a => actionStatus(a) === 'Overdue');
+  const done = s.acts.filter(a => actionStatus(a) === 'Done');
+  if (s.acts.length) parts.push(`Of ${s.acts.length} actions agreed at reviews, ${done.length ? done.length + (done.length === 1 ? ' is' : ' are') + ' done' : 'none is done yet'}${late.length ? ` and ${late.length} ${late.length === 1 ? 'is' : 'are'} overdue: ${late.map(a => a.text.toLowerCase() + ' (' + partnerShort(a.owner) + ')').join('; ')}` : ''}.`);
+  return parts.join(' ');
+}
+
+function renderReview(el) {
+  const w = store.get('wards', state.ward);
+  const flash = state.flash ? `<div class="flash" role="status">${esc(state.flash)}</div>` : ''; state.flash = null;
+  const tabs = `<div class="tabs" role="tablist"><button class="tab" role="tab" data-rvtab="pack" aria-selected="${rv.tab === 'pack'}">Ward review pack</button><button class="tab" role="tab" data-rvtab="forum" aria-selected="${rv.tab === 'forum'}">Forum overview</button></div>`;
+  if (rv.tab === 'forum') { el.innerHTML = renderForum(tabs, flash); return; }
+  const s = wardStats(state.ward, 30);
+  const meetings = store.where('meetings', m => m.ward === state.ward).sort((a, b) => b.date - a.date);
+  const last = meetings[0];
+  const canEdit = ['committee', 'admin', 'bcc', 'association'].includes(state.role);
+  const maxHot = Math.max(1, ...s.hotspots.map(h => h[1]));
+  el.innerHTML = `<div class="view-head"><div><h2>Monthly review: ${esc(w.name)}</h2><p>Prepared for the ward committee after each clean-up day. Covers the last 30 days. Next clean-up day: ${fmtDay(nextCleanupDay())}.</p></div></div>
+    ${tabs}${flash}
+    <div class="kpis">
+      <div class="kpi"><b>${s.recent.length}</b><span>reports in 30 days</span></div>
+      <div class="kpi"><b>${s.betweenPct == null ? '—' : s.betweenPct + '%'}</b><span>made between clean-up days</span></div>
+      <div class="kpi"><b>${s.medianFix == null ? '—' : Math.round(s.medianFix) + ' h'}</b><span>median time to fix</span></div>
+      <div class="kpi"><b style="${s.overdue.length ? 'color:var(--st-overdue)' : ''}">${s.overdue.length}</b><span>overdue now</span></div>
+      <div class="kpi"><b>${s.kg} kg</b><span>recovered by pickers</span></div>
+    </div>
+    <div class="summary"><span class="ref">AI summary · drafted from the ward's data; the committee edits it before sharing</span><p>${esc(aiSummary(w, s))}</p></div>
+    <div class="section-gap">
+      <section class="panel"><h3>How each partner did</h3>
+        <div class="table-wrap"><table><thead><tr><th>Partner</th><th>New cases</th><th>Fixed</th><th>Median fix</th><th>On time</th><th>Open</th><th>Overdue</th></tr></thead><tbody>
+        ${s.partners.map(p => `<tr><td>${esc(store.get('partners', p.p).name)}</td><td class="num">${p.assigned}</td><td class="num">${p.fixed}</td><td class="num">${p.median == null ? '—' : Math.round(p.median) + ' h'}</td><td class="num">${p.onTime == null ? '—' : p.onTime + '%'}</td><td class="num">${p.open}</td><td class="num" style="${p.overdue ? 'color:var(--st-overdue);font-weight:600' : ''}">${p.overdue}</td></tr>`).join('')}
+        </tbody></table></div></section>
+      <div class="two-col">
+        <section class="panel"><h3>Repeat sites</h3>
+          ${s.hotspots.length ? `<div class="table-wrap" style="border:0"><table><tbody>${s.hotspots.slice(0, 6).map(([site, n]) => `<tr title="${esc(site)}: ${n} report${n === 1 ? '' : 's'}"><td style="white-space:normal">${esc(site)}</td><td style="width:40%"><div class="mini-track"><div class="mini-bar" style="width:${(n / maxHot * 100).toFixed(0)}%"></div></div></td><td class="num">${n}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">No reports in the period.</p>'}
+          <p class="hint" style="margin:0">Reports in the last 30 days by site, merged duplicates included. A site that keeps coming back needs a standing fix, not another clear-up.</p></section>
+        <section class="panel"><h3>Last review</h3>
+          ${last ? `<dl class="kv"><dt>Held</dt><dd>${fmtDay(last.date)}</dd><dt>Attended</dt><dd>${last.attended.map(partnerShort).map(esc).join(', ')}</dd><dt>Actions agreed</dt><dd>${s.acts.filter(a => a.meeting === last.id).length}</dd></dl>` : '<p class="empty">No review recorded yet.</p>'}
+          ${canEdit ? `<div><button class="btn" data-rv="meeting">Record today's review</button></div><p class="hint" style="margin:0">Records a review today with the ward committee's partners; new actions are then attached to it.</p>` : ''}</section>
+      </div>
+      <section class="panel"><h3>Action tracker</h3>
+        <div class="table-wrap"><table><thead><tr><th>Action</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead><tbody>
+        ${s.acts.slice().sort((a, b) => a.due - b.due).map(a => { const st = actionStatus(a); return `<tr><td style="white-space:normal;min-width:200px">${esc(a.text)}</td><td>${esc(partnerShort(a.owner))}</td><td>${fmtDay(a.due)}</td><td>${canEdit ? `<select data-astatus="${a.id}" aria-label="Status of ${esc(a.text)}">${['Not started', 'In progress', 'Done'].map(o => `<option ${(st === o || (st === 'Overdue' && o === (a.status === 'Not started' ? 'Not started' : 'In progress'))) ? 'selected' : ''}>${o}</option>`).join('')}</select> ` : ''}<span class="astat ${ACLASS[st]}">${st === 'Overdue' ? 'Overdue' : canEdit ? '' : st}</span></td></tr>`; }).join('') || '<tr><td colspan="4" class="empty">No actions yet.</td></tr>'}
+        </tbody></table></div>
+        ${canEdit ? `<div class="add-action">
+          <label for="act-text">New action<input id="act-text" value="${esc(rv.text)}" placeholder="e.g. Put two skip bins at the bus stop"></label>
+          <label for="act-owner">Owner<select id="act-owner">${store.all('partners').map(p => `<option value="${p.id}" ${rv.owner === p.id ? 'selected' : ''}>${esc(p.short)}</option>`).join('')}</select></label>
+          <label for="act-days">Due in<select id="act-days">${[['7', '1 week'], ['14', '2 weeks'], ['30', '1 month']].map(([v, l]) => `<option value="${v}" ${rv.days === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          <button class="btn btn-primary" data-rv="addaction">Add action</button></div>` : '<p class="empty" style="margin:0">Switch to Ward committee to add or update actions.</p>'}
+      </section>
+    </div>`;
+}
+
+function renderForum(tabs, flash) {
+  const wards = store.all('wards');
+  const stats = wards.map(w => [w, wardStats(w.id, 30)]);
+  const allPickers = store.all('pickers').length;
+  const allReps = store.all('reports');
+  const fixedAll = allReps.filter(r => r.status === 'fixed' && r.fixed >= Date.now() - 30 * DAY);
+  const op1 = median(fixedAll.map(r => (r.fixed - r.created) / HOUR));
+  const recentAll = allReps.filter(r => r.created >= Date.now() - 30 * DAY);
+  const op2 = recentAll.length ? Math.round(recentAll.filter(r => !isCleanupDay(r.created)).length / recentAll.length * 100) : null;
+  const current = { OP1: op1 == null ? null : Math.round(op1) + ' h', OP2: op2 == null ? null : op2 + '%' };
+  return `<div class="view-head"><div><h2>City Waste Partnership Forum</h2><p>Every ward side by side, and the framework's indicators. Survey results fill the baselines; the forum sets the targets.</p></div></div>
+    ${tabs}${flash}
+    <div class="section-gap">
+      <section class="panel"><h3>Wards in the last 30 days</h3>
+        <div class="table-wrap"><table><thead><tr><th>Ward</th><th>Reports</th><th>Between clean-ups</th><th>Median fix</th><th>Open</th><th>Overdue</th><th>Pickers</th><th>Recovered</th><th>Actions overdue</th></tr></thead><tbody>
+        ${stats.map(([w, s]) => `<tr><td>${esc(w.name)}</td><td class="num">${s.recent.length}</td><td class="num">${s.betweenPct == null ? '—' : s.betweenPct + '%'}</td><td class="num">${s.medianFix == null ? '—' : Math.round(s.medianFix) + ' h'}</td><td class="num">${s.open}</td><td class="num" style="${s.overdue.length ? 'color:var(--st-overdue);font-weight:600' : ''}">${s.overdue.length}</td><td class="num">${s.pickers}</td><td class="num">${s.kg} kg</td><td class="num">${s.acts.filter(a => actionStatus(a) === 'Overdue').length}</td></tr>`).join('')}
+        </tbody></table></div>
+        <p class="hint" style="margin:0">More wards join this table as the framework is rolled out.</p></section>
+      <section class="panel"><h3>Framework indicators</h3>
+        <div class="table-wrap"><table><thead><tr><th>Code</th><th>Indicator</th><th>Source</th><th>Baseline</th><th>Now</th><th>Target</th></tr></thead><tbody>
+        ${store.all('indicators').map(i => `<tr><td class="mono">${i.code}</td><td style="white-space:normal;min-width:220px">${esc(i.name)}</td><td>${i.section === 'App' ? 'App data' : 'Questionnaire ' + i.section}</td>
+          <td>${i.baseline != null ? esc(i.baseline) : i.section === 'App' ? '<span class="empty">Set at pilot start</span>' : '<span class="pill pending">Awaiting survey</span>'}</td>
+          <td>${current[i.code] ? esc(current[i.code]) : i.code === 'C2' ? allPickers + ' registered' : '<span class="empty">Repeat survey</span>'}</td>
+          <td>${i.target != null ? esc(i.target) : '<span class="empty">Forum to set</span>'}</td></tr>`).join('')}
+        </tbody></table></div>
+        <p class="hint" style="margin:0">Questionnaire indicators (Sections B–E) get their baseline from the survey and are re-measured by a short repeat survey. App indicators update daily.</p></section>
+    </div>`;
+}
+
+{
+  const v = document.getElementById('view');
+  v.addEventListener('click', e => {
+    const t = e.target.closest('[data-rvtab]'); if (t) { rv.tab = t.dataset.rvtab; render(); return; }
+    const a = e.target.closest('[data-rv]'); if (!a) return;
+    if (a.dataset.rv === 'meeting') {
+      const w = store.get('wards', state.ward);
+      const id = 'M-' + state.ward + '-' + Date.now().toString(36);
+      store.insert('meetings', { id, ward: state.ward, date: Date.now(), title: 'Ward review after clean-up day', attended: w.committee.slice() });
+      state.flash = `Review recorded for today with ${w.committee.map(partnerShort).join(', ')}. New actions will be attached to it.`;
+    }
+    if (a.dataset.rv === 'addaction') {
+      const text = rv.text.trim();
+      if (!text) { state.flash = 'Type the action first, for example "Put two skip bins at the bus stop".'; }
+      else {
+        let m = store.where('meetings', x => x.ward === state.ward).sort((x, y) => y.date - x.date)[0];
+        if (!m) { m = store.insert('meetings', { id: 'M-' + state.ward + '-' + Date.now().toString(36), ward: state.ward, date: Date.now(), title: 'Ward review', attended: store.get('wards', state.ward).committee.slice() }); }
+        const id = 'A-' + String(store.all('actions').length + 1).padStart(3, '0') + '-' + Date.now().toString(36).slice(-3);
+        store.insert('actions', { id, meeting: m.id, text, owner: rv.owner, due: Date.now() + Number(rv.days) * DAY, status: 'Not started' });
+        state.flash = `Action added for ${partnerShort(rv.owner)}, due ${fmtDay(Date.now() + Number(rv.days) * DAY)}.`;
+        rv.text = '';
+      }
+    }
+    render();
+  });
+  v.addEventListener('input', e => { if (e.target.id === 'act-text') rv.text = e.target.value; });
+  v.addEventListener('change', e => {
+    if (e.target.id === 'act-owner') rv.owner = e.target.value;
+    if (e.target.id === 'act-days') rv.days = e.target.value;
+    if (e.target.dataset && e.target.dataset.astatus) {
+      const id = e.target.dataset.astatus;
+      store.update('actions', id, { status: e.target.value });
+      state.flash = `Action marked ${e.target.value.toLowerCase()}.`;
+      render();
+    }
   });
 }
 

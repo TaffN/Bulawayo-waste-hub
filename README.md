@@ -19,7 +19,7 @@ Open `index.html` in any web browser. There is nothing to install.
 
 1. Foundation, sample data and ward map (done)
 2. WhatsApp and USSD reporting (done)
-3. Partner queues and fixing
-4. Pickers and recyclables
-5. Review pack and forum view
+3. Partner queues and fixing (done)
+4. Pickers and recyclables (done)
+5. Review pack and forum view (done)
 6. Polish and stakeholder feedback
