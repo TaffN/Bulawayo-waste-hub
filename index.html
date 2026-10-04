@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bulawayo Waste Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: civic operations console - top bar, stage-aware nav rail, map canvas with a details panel. Neutrals lean slightly green toward the accent. */
+:root {
+  --bg: #f4f6f4;
+  --surface: #ffffff;
+  --surface-2: #eaeeeb;
+  --line: #d3dad5;
+  --fg: #17211c;
+  --muted: #5a6760;
+  --accent: #0e6b58;
+  --accent-soft: #dcefe9;
+  --ward-fill: #e6ede8;
+  --road: #b9c4bd;
+  --water: #9cc3d4;
+  --st-new: #2563b8;
+  --st-assigned: #b7791f;
+  --st-progress: #7a4bb5;
+  --st-fixed: #2f8a3e;
+  --st-overdue: #c2362f;
+  --font-ui: "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #18201c; --surface-2: #1f2924; --line: #2f3b35;
+    --fg: #e5ece8; --muted: #9aa8a0; --accent: #4cc3a6; --accent-soft: #173a31;
+    --ward-fill: #1d2823; --road: #3d4a43; --water: #2f5868;
+    --st-new: #6aa3f0; --st-assigned: #e0a845; --st-progress: #b18be6; --st-fixed: #5cc06c; --st-overdue: #f0675e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #18201c; --surface-2: #1f2924; --line: #2f3b35;
+  --fg: #e5ece8; --muted: #9aa8a0; --accent: #4cc3a6; --accent-soft: #173a31;
+  --ward-fill: #1d2823; --road: #3d4a43; --water: #2f5868;
+  --st-new: #6aa3f0; --st-assigned: #e0a845; --st-progress: #b18be6; --st-fixed: #5cc06c; --st-overdue: #f0675e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px; line-height: 1.45; }
+button, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); padding-block: 10px; padding-inline: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
+.brand-mark { width: 28px; height: 28px; flex: none; }
+.brand h1 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.demo-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--st-assigned); border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.field { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.field select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 13px; color: var(--fg); max-width: 210px; }
+.btn { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+
+.shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100vh - 60px); }
+nav.rail { border-right: 1px solid var(--line); padding-block: 16px; padding-inline: 10px; display: flex; flex-direction: column; gap: 2px; background: var(--surface); }
+.rail-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 12px 10px 4px; }
+.nav-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 14px; }
+.nav-item:hover:not([disabled]) { background: var(--surface-2); }
+.nav-item[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav-item[disabled] { color: var(--muted); cursor: default; }
+.stage-chip { font-size: 10.5px; font-family: var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; white-space: nowrap; }
+
+main { padding-block: 20px; padding-inline: 20px; min-width: 0; }
+.view-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.view-head h2 { margin: 0; font-size: 20px; letter-spacing: -0.01em; text-wrap: balance; }
+.view-head p { margin: 2px 0 0; color: var(--muted); max-width: 65ch; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.stat { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 8px; cursor: pointer; font-size: 13px; }
+.stat[aria-pressed="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.stat b { font-variant-numeric: tabular-nums; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.dot.overdue { background: transparent; border: 2.5px solid var(--st-overdue); }
+
+.map-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.map-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; min-width: 0; }
+.map-card svg { width: 100%; height: auto; display: block; }
+.map-note { font-size: 12px; color: var(--muted); padding: 6px 6px 2px; }
+.pin { cursor: pointer; }
+.pin:focus-visible { outline: none; }
+.pin:focus-visible circle.core, .pin.selected circle.core { stroke: var(--fg); stroke-width: 3; }
+.pin.dim { opacity: 0.22; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel h3 { margin: 0; font-size: 15px; }
+.ref { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.kv { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 6px 10px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 9px; background: var(--surface-2); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; border-left: 2px solid var(--line); padding-left: 12px; font-size: 13px; }
+.timeline time { display: block; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); font-size: 13px; }
+.hint { font-size: 12.5px; color: var(--muted); background: var(--surface-2); border-radius: 6px; padding: 8px 10px; }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+th { font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); position: sticky; top: 0; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+td.mono { font-family: var(--font-mono); font-size: 12px; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--surface-2); }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tab { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font-size: 13px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.tab .count { font-family: var(--font-mono); font-size: 11px; opacity: 0.75; margin-left: 4px; }
+
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; align-items: start; }
+.settings-grid td { white-space: normal; }
+.decision { display: flex; justify-content: space-between; gap: 12px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.decision:last-child { border-bottom: 0; }
+.decision p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+.pending { color: var(--st-assigned); border: 1px solid currentColor; background: transparent; }
+.locked { padding: 28px; text-align: center; }
+.confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+
+/* ---- Stage 2: phone simulators ---- */
+.sim-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start; }
+.phone { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 10px; width: 100%; max-width: 390px; justify-self: center; min-width: 0; }
+.phone-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px 16px 0 0; background: var(--accent); color: var(--surface); }
+.phone-head b { display: block; font-size: 14px; }
+.phone-head span { font-size: 11.5px; opacity: 0.85; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; flex: none; }
+.chat { height: 460px; overflow-y: auto; background: var(--surface-2); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.bubble { max-width: 84%; padding: 8px 10px; border-radius: 10px; white-space: pre-wrap; font-size: 13.5px; overflow-wrap: anywhere; }
+.bubble.bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-top-left-radius: 2px; }
+.bubble.me { align-self: flex-end; background: var(--accent-soft); border-top-right-radius: 2px; }
+.bubble .meta { font-size: 10.5px; color: var(--muted); text-align: right; margin-top: 3px; }
+.bubble .shot { width: 200px; max-width: 100%; border-radius: 6px; overflow: hidden; display: block; margin-bottom: 4px; }
+.bubble .shot svg, .bubble .shot img { display: block; width: 100%; height: auto; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 100%; }
+.quick button { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 5px 11px; font-size: 13px; cursor: pointer; text-align: left; }
+.quick button:hover { background: var(--accent-soft); }
+.photo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; }
+.photo-btn { padding: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); cursor: pointer; font-size: 11px; color: var(--muted); }
+.photo-btn svg { display: block; width: 100%; height: auto; }
+.photo-btn span { display: block; padding: 3px 4px; }
+.composer { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--line); align-items: center; }
+.composer input[type="text"] { flex: 1; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font: inherit; color: var(--fg); }
+.attach { position: relative; overflow: hidden; }
+.attach input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.lang-note { font-size: 11.5px; color: var(--st-assigned); padding: 6px 10px 0; }
+.ussd-body { padding: 14px 8px 6px; display: flex; flex-direction: column; gap: 10px; }
+.ussd-screen { background: #c9d3bf; color: #1e2a1c; font-family: var(--font-mono); font-size: 13px; line-height: 1.4; min-height: 236px; border-radius: 8px; padding: 12px; white-space: pre-wrap; border: 2px solid #8a977f; overflow-wrap: anywhere; }
+.ussd-entry { display: flex; gap: 6px; }
+.ussd-entry input { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 15px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; color: var(--fg); }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.keypad button { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 0; font-size: 16px; font-family: var(--font-mono); cursor: pointer; }
+.keypad button:active { background: var(--accent-soft); }
+.feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto; }
+.feed li { border-left: 3px solid var(--line); padding-left: 10px; font-size: 13px; }
+.feed li.k-merge { border-color: var(--st-progress); }
+.feed li.k-route { border-color: var(--st-assigned); }
+.feed li.k-new { border-color: var(--st-new); }
+.feed li.k-picker { border-color: var(--st-fixed); }
+.feed time { display: block; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.linkish { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.detail-photo { width: 100%; max-width: 240px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.detail-photo svg, .detail-photo img { display: block; width: 100%; height: auto; }
+.pin.fresh circle.core { stroke: var(--fg); stroke-width: 3; stroke-dasharray: 4 3; }
+
+@media (max-width: 900px) {
+  .map-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  nav.rail { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding-block: 8px; gap: 4px; }
+  .rail-label { display: none; }
+  .nav-item { width: auto; white-space: nowrap; flex: none; }
+  main { padding-inline: 16px; }
+  .field select { max-width: 160px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pin circle.core { transition: r 0.15s ease; }
+}
+</style>
+</head>
+<body style="margin:0">
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="var(--accent)"/><path d="M8 11h12l-1.4 10.2a1.5 1.5 0 0 1-1.5 1.3h-6.2a1.5 1.5 0 0 1-1.5-1.3z M11 8.5h6" fill="none" stroke="var(--surface)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Bulawayo Waste Hub</h1>
+    <span class="demo-tag">Demonstration · sample data</span>
+  </div>
+  <div class="controls">
+    <label class="field" for="role-select">Viewing as
+      <select id="role-select"></select>
+    </label>
+    <label class="field" for="ward-select">Ward
+      <select id="ward-select"></select>
+    </label>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="nav" aria-label="Sections"></nav>
+  <main id="view"></main>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= Sample data (all invented) ================= */
+const HOUR = 3600e3, DAY = 24 * HOUR;
+
+function prng(seed) {
+  let s = seed >>> 0;
+  return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+const CATEGORIES = {
+  household: 'Household waste',
+  rubble: "Builders' rubble",
+  garden: 'Garden waste',
+  plastics: 'Plastics and recyclables',
+  tyres: 'Old tyres',
+  hazardous: 'Hazardous (medical or chemical)'
+};
+const SIZES = { small: 'Small (a few bags)', medium: 'Medium (wheelbarrow)', large: 'Large (truckload)' };
+const HAZARDS = { drain: 'Blocking a drain', burning: 'Being burnt', school: 'Near a school', market: 'At a market' };
+const STATUS = {
+  new: { label: 'New', color: 'var(--st-new)' },
+  assigned: { label: 'Assigned', color: 'var(--st-assigned)' },
+  in_progress: { label: 'In progress', color: 'var(--st-progress)' },
+  fixed: { label: 'Fixed', color: 'var(--st-fixed)' }
+};
+
+// Landmarks per ward (schematic coordinates on a 1000 x 640 canvas)
+const SPOTS = {
+  W1: [
+    { near: 'Market stalls by the main road', x: 470, y: 280, hz: 'market' },
+    { near: 'Stream crossing, east side', x: 735, y: 395, hz: 'drain' },
+    { near: 'Open ground behind the clinic', x: 370, y: 235, hz: null },
+    { near: 'Primary school fence', x: 650, y: 215, hz: 'school' },
+    { near: 'Bus stop at the shopping centre', x: 430, y: 410, hz: null },
+    { near: 'Vacant stand, south-west', x: 220, y: 440, hz: null },
+    { near: 'Drain along the ring road', x: 805, y: 250, hz: 'drain' },
+    { near: 'Footpath to the stream', x: 655, y: 470, hz: 'drain' }
+  ],
+  W2: [
+    { near: 'Lane behind the shops', x: 430, y: 280, hz: 'market' },
+    { near: 'Storm drain, Main Street', x: 610, y: 360, hz: 'drain' },
+    { near: 'Corner of the park', x: 300, y: 420, hz: null },
+    { near: 'Back of the community hall', x: 690, y: 210, hz: null }
+  ]
+};
+
+function buildSeed() {
+  const now = Date.now();
+  const rnd = prng(20261004);
+  const pick = arr => arr[Math.floor(rnd() * arr.length)];
+
+  const wards = [
+    { id: 'W1', name: 'Cowdray Park', placeholder: false, note: 'High-density suburb; first pilot ward', committee: ['P-BCC', 'P-RA', 'P-CH', 'P-PG', 'P-WT'] },
+    { id: 'W2', name: 'Ward B (to be chosen)', placeholder: true, note: 'Placeholder until Taff and Karl choose the second ward', committee: ['P-BCC', 'P-RA2', 'P-CH2'] }
+  ];
+
+  const partners = [
+    { id: 'P-BCC', name: 'Bulawayo City Council', short: 'BCC', type: 'Council', role: 'Collection, by-laws, chairs ward reviews' },
+    { id: 'P-EMA', name: 'Environmental Management Agency', short: 'EMA', type: 'Regulator', role: 'Enforcement on hazardous and repeat dumping' },
+    { id: 'P-OP', name: 'Sample Waste Services (Pvt) Ltd', short: 'Operator', type: 'Private operator', role: 'Contracted collection of large loads' },
+    { id: 'P-CH', name: 'Sample Community Church, Cowdray Park', short: 'Church', type: 'Church', role: 'Drop-off point, message between clean-up days' },
+    { id: 'P-CH2', name: 'Sample Fellowship, Ward B', short: 'Church B', type: 'Church', role: 'Drop-off point, message between clean-up days' },
+    { id: 'P-RA', name: "Cowdray Park residents' association (sample)", short: 'Residents', type: "Residents' association", role: 'Verifies fixes, co-chairs ward review' },
+    { id: 'P-RA2', name: "Ward B residents' association (sample)", short: 'Residents B', type: "Residents' association", role: 'Verifies fixes, co-chairs ward review' },
+    { id: 'P-BIZ', name: 'Sample Recyclers (Pvt) Ltd', short: 'Recycler', type: 'Business', role: 'Buys sorted recyclables, sponsors rewards' },
+    { id: 'P-PG', name: "Cowdray Park pickers' group (sample)", short: 'Pickers', type: 'Waste pickers', role: 'Recovers plastics and metal from reported sites' },
+    { id: 'P-WT', name: 'Ward volunteer team', short: 'Ward team', type: 'Ward team', role: 'Clears small sites on clean-up days and between' }
+  ];
+
+  const routing_rules = [
+    { id: 'R1', category: 'household', size: 'small', partner: 'P-WT', hours: 72, note: 'Ward team clears; BCC collects bags' },
+    { id: 'R2', category: 'household', size: 'medium', partner: 'P-BCC', hours: 72, note: '' },
+    { id: 'R3', category: 'household', size: 'large', partner: 'P-BCC', hours: 48, note: 'Contractor if BCC truck unavailable' },
+    { id: 'R4', category: 'rubble', size: 'any', partner: 'P-OP', hours: 120, note: 'Tipper needed' },
+    { id: 'R5', category: 'garden', size: 'any', partner: 'P-WT', hours: 96, note: '' },
+    { id: 'R6', category: 'plastics', size: 'any', partner: 'P-PG', hours: 72, note: 'Pickers recover; remainder to BCC' },
+    { id: 'R7', category: 'tyres', size: 'any', partner: 'P-BCC', hours: 96, note: '' },
+    { id: 'R8', category: 'hazardous', size: 'any', partner: 'P-EMA', hours: 24, note: 'EMA leads; BCC removes' },
+    { id: 'R9', category: 'any', size: 'any', hazard: 'burning', partner: 'P-EMA', hours: 24, note: 'Burning overrides category' }
+  ];
+
+  const indicators = [
+    { code: 'B1', section: 'B', name: 'Partners report joint planning before action', unit: '% agree', baseline: null, target: null },
+    { code: 'B2', section: 'B', name: 'Residents feel their views count in decisions', unit: '% agree', baseline: null, target: null },
+    { code: 'B3', section: 'B', name: 'Effort continues between clean-up days', unit: '% agree', baseline: null, target: null },
+    { code: 'C1', section: 'C', name: 'A ward forum exists to raise waste concerns', unit: '% agree', baseline: null, target: null },
+    { code: 'C2', section: 'C', name: 'Waste pickers formally recognised', unit: '% agree', baseline: null, target: null },
+    { code: 'C3', section: 'C', name: 'Collection schedule available by phone or radio', unit: '% agree', baseline: null, target: null },
+    { code: 'D1', section: 'D', name: 'Households sorting waste outside clean-up days', unit: '% monthly', baseline: null, target: null },
+    { code: 'D2', section: 'D', name: 'Would keep habits if the campaign stopped', unit: '% agree', baseline: null, target: null },
+    { code: 'D3', section: 'D', name: 'Collection happens on a reliable schedule', unit: '% agree', baseline: null, target: null },
+    { code: 'E1', section: 'E', name: 'Residents see enforcement against dumping', unit: '% agree', baseline: null, target: null },
+    { code: 'OP1', section: 'App', name: 'Median time from report to fix', unit: 'hours', baseline: null, target: null },
+    { code: 'OP2', section: 'App', name: 'Reports made between clean-up days', unit: '% of reports', baseline: null, target: null }
+  ];
+
+  const spots = SPOTS;
+
+  const plan = [
+    // ward, spot, category, size, channel, ageDays, status, extra hazard
+    ['W1', 0, 'household', 'large', 'WhatsApp', 1.5, 'assigned', null],
+    ['W1', 0, 'household', 'large', 'USSD', 1.1, 'merged', null],
+    ['W1', 0, 'plastics', 'medium', 'WhatsApp', 0.7, 'merged', null],
+    ['W1', 1, 'household', 'medium', 'WhatsApp', 2.2, 'in_progress', null],
+    ['W1', 2, 'rubble', 'large', 'Web', 9, 'assigned', null],
+    ['W1', 3, 'household', 'small', 'WhatsApp', 1, 'new', null],
+    ['W1', 4, 'plastics', 'medium', 'USSD', 2, 'in_progress', null],
+    ['W1', 5, 'garden', 'medium', 'WhatsApp', 12, 'fixed', null],
+    ['W1', 6, 'household', 'medium', 'WhatsApp', 5, 'assigned', 'burning'],
+    ['W1', 7, 'tyres', 'medium', 'USSD', 3, 'assigned', null],
+    ['W1', 1, 'household', 'large', 'WhatsApp', 20, 'fixed', null],
+    ['W1', 2, 'hazardous', 'small', 'WhatsApp', 1, 'new', null],
+    ['W1', 5, 'household', 'small', 'USSD', 15, 'fixed', null],
+    ['W1', 3, 'plastics', 'small', 'Web', 10, 'fixed', null],
+    ['W1', 6, 'household', 'large', 'WhatsApp', 25, 'fixed', null],
+    ['W1', 4, 'household', 'medium', 'WhatsApp', 0.3, 'new', null],
+    ['W2', 0, 'household', 'medium', 'WhatsApp', 2, 'assigned', null],
+    ['W2', 1, 'household', 'large', 'USSD', 1.2, 'in_progress', null],
+    ['W2', 2, 'garden', 'small', 'WhatsApp', 9, 'fixed', null],
+    ['W2', 3, 'rubble', 'medium', 'Web', 2, 'new', null]
+  ];
+
+  const reports = [], report_events = [];
+  let lastPrimary = null;
+  plan.forEach((p, i) => {
+    const [ward, si, category, size, channel, age, status, extraHz] = p;
+    const spot = spots[ward][si];
+    const id = 'BWH-' + String(1041 + i).padStart(5, '0');
+    const created = now - age * DAY - Math.floor(rnd() * 6) * HOUR;
+    const hazards = [spot.hz, extraHz].filter(Boolean);
+    const jitter = () => Math.round((rnd() - 0.5) * 34);
+    const r = {
+      id, ward, near: spot.near, x: spot.x + jitter(), y: spot.y + jitter(),
+      channel, category, size, hazards, created,
+      status: status === 'merged' ? 'merged' : status,
+      merged_into: status === 'merged' ? lastPrimary : null,
+      owner: null, due: null, fixed: null,
+      ai_confidence: Math.round(78 + rnd() * 19)
+    };
+    if (status !== 'merged') lastPrimary = id;
+    reports.push(r);
+  });
+  // Assign owners and events
+  reports.forEach(r => {
+    const ev = (t, actor, action, note) => report_events.push({ report: r.id, time: t, actor, action, note: note || '' });
+    ev(r.created, 'Resident', 'Reported', 'via ' + r.channel);
+    ev(r.created + 2 * 60e3, 'AI triage', 'Tagged', CATEGORIES[r.category] + ', ' + r.size + (r.hazards.length ? ', ' + r.hazards.map(h => HAZARDS[h].toLowerCase()).join(', ') : ''));
+    if (r.status === 'merged') { ev(r.created + 3 * 60e3, 'AI triage', 'Merged', 'Same site as ' + r.merged_into); return; }
+    if (r.status === 'new') return;
+    const rule = matchRule(routing_rules, r);
+    r.owner = rule.partner;
+    r.due = r.created + rule.hours * HOUR;
+    ev(r.created + 10 * 60e3, 'Routing', 'Assigned', 'To ' + partners.find(x => x.id === rule.partner).short + ', due within ' + rule.hours + ' h (rule ' + rule.id + ')');
+    if (r.status === 'in_progress' || r.status === 'fixed') ev(r.created + 20 * HOUR, partners.find(x => x.id === r.owner).short, 'Started', '');
+    if (r.status === 'fixed') {
+      r.fixed = Math.min(now - HOUR, r.created + (30 + Math.floor(rnd() * 50)) * HOUR);
+      ev(r.fixed, partners.find(x => x.id === r.owner).short, 'Fixed', 'After photo added');
+      ev(r.fixed + HOUR, 'Residents', 'Verified', 'Site checked by residents’ association');
+    }
+  });
+
+  const collection_schedule = [
+    { ward: 'W1', day: 'Tuesday', area: 'North of the main road', operator: 'P-BCC', status: 'On schedule' },
+    { ward: 'W1', day: 'Thursday', area: 'South of the main road', operator: 'P-BCC', status: 'Missed last week' },
+    { ward: 'W1', day: 'Saturday', area: 'Market and shopping centre', operator: 'P-OP', status: 'On schedule' },
+    { ward: 'W2', day: 'Wednesday', area: 'Whole ward', operator: 'P-BCC', status: 'On schedule' }
+  ];
+
+  const pickers = [];
+  for (let i = 1; i <= 7; i++) pickers.push({ id: 'PK-' + String(i).padStart(3, '0'), ward: i <= 5 ? 'W1' : 'W2', phone: 'basic phone (USSD)', materials: pick([['PET plastic'], ['PET plastic', 'cans'], ['scrap metal'], ['cardboard', 'PET plastic']]).join(', '), registered: now - Math.floor(10 + rnd() * 60) * DAY });
+  pickers[1].phone = 'smartphone (WhatsApp)';
+  pickers[4].phone = 'smartphone (WhatsApp)';
+
+  const recoveries = [];
+  for (let i = 0; i < 12; i++) {
+    const pk = pickers[Math.floor(rnd() * 5)];
+    recoveries.push({ picker: pk.id, material: pk.materials.split(', ')[0], kg: Math.round(8 + rnd() * 45), buyer: 'P-BIZ', date: now - Math.floor(rnd() * 28) * DAY });
+  }
+  recoveries.sort((a, b) => b.date - a.date);
+
+  const meetings = [
+    { id: 'M1', ward: 'W1', date: firstFriday(now, -1) + 2 * HOUR * 7, title: 'Ward review after clean-up day', attended: ['P-BCC', 'P-RA', 'P-CH', 'P-PG'] },
+    { id: 'M2', ward: 'W2', date: firstFriday(now, -1) + 2 * HOUR * 8, title: 'Ward review after clean-up day', attended: ['P-BCC', 'P-RA2'] }
+  ];
+  const actions = [
+    { meeting: 'M1', text: 'Daily bin collection at the market stalls', owner: 'P-BCC', due: now + 5 * DAY, status: 'In progress' },
+    { meeting: 'M1', text: 'Church to host a Saturday plastics drop-off', owner: 'P-CH', due: now + 9 * DAY, status: 'Not started' },
+    { meeting: 'M1', text: 'Evening patrol of the stream crossing', owner: 'P-RA', due: now - 2 * DAY, status: 'Overdue' },
+    { meeting: 'M1', text: 'Register five more pickers', owner: 'P-PG', due: now + 14 * DAY, status: 'In progress' },
+    { meeting: 'M2', text: 'Confirm second-ward boundary and committee', owner: 'P-BCC', due: now + 7 * DAY, status: 'Not started' }
+  ];
+
+  return { version: 1, seededAt: now, wards, partners, routing_rules, indicators, reports, report_events, collection_schedule, pickers, recoveries, meetings, actions };
+}
+
+function firstFriday(t, monthOffset) {
+  const d = new Date(t); d.setDate(1); d.setMonth(d.getMonth() + monthOffset); d.setHours(0, 0, 0, 0);
+  while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+  return d.getTime();
+}
+
+function matchRule(rules, r) {
+  return rules.find(x => x.hazard && r.hazards.includes(x.hazard))
+    || rules.find(x => x.category === r.category && x.size === r.size)
+    || rules.find(x => x.category === r.category && x.size === 'any')
+    || rules[1];
+}
+
+/* ================= Data layer (the "repository") =================
+   Screens only call these functions. Later this layer talks to
+   PostgreSQL instead of the browser, and survey results load here. */
+const STORE_KEY = 'bwh-demo-v1';
+const store = (() => {
+  let db = null;
+  function load() {
+    try { const raw = localStorage.getItem(STORE_KEY); if (raw) { const d = JSON.parse(raw); if (d && d.version === 1) return d; } } catch (e) {}
+    return buildSeed();
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (e) {} }
+  db = load(); save();
+  return {
+    tables: () => ['wards', 'partners', 'routing_rules', 'indicators', 'reports', 'report_events', 'collection_schedule', 'pickers', 'recoveries', 'meetings', 'actions'],
+    all: t => db[t].slice(),
+    where: (t, fn) => db[t].filter(fn),
+    get: (t, id) => db[t].find(x => x.id === id),
+    insert: (t, row) => { db[t].push(row); save(); return row; },
+    update: (t, id, patch) => { const r = db[t].find(x => x.id === id); if (r) { Object.assign(r, patch); save(); } return r; },
+    reset: () => { db = buildSeed(); save(); }
+  };
+})();
+
+/* ================= Helpers ================= */
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const partnerShort = id => { const p = store.get('partners', id); return p ? p.short : '—'; };
+const fmtDate = t => new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const fmtDay = t => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+function ago(t) {
+  const h = (Date.now() - t) / HOUR;
+  if (h < 1) return 'under an hour ago';
+  if (h < 24) return Math.round(h) + ' h ago';
+  return Math.round(h / 24) + ' days ago';
+}
+const isOverdue = r => r.due && r.status !== 'fixed' && r.status !== 'merged' && Date.now() > r.due;
+const duplicatesOf = r => store.where('reports', x => x.merged_into === r.id);
+
+/* ================= State ================= */
+const ROLES = [
+  { id: 'committee', label: 'Ward committee', partner: null },
+  { id: 'resident', label: 'Resident', partner: null },
+  { id: 'bcc', label: 'City Council (BCC)', partner: 'P-BCC' },
+  { id: 'ema', label: 'EMA', partner: 'P-EMA' },
+  { id: 'operator', label: 'Private operator', partner: 'P-OP' },
+  { id: 'church', label: 'Church', partner: 'P-CH' },
+  { id: 'association', label: "Residents' association", partner: 'P-RA' },
+  { id: 'business', label: 'Business buyer', partner: 'P-BIZ' },
+  { id: 'picker', label: 'Waste picker', partner: 'P-PG' },
+  { id: 'ward-team', label: 'Ward volunteer team', partner: 'P-WT' },
+  { id: 'admin', label: 'Administrator', partner: null }
+];
+const VIEWS = [
+  { id: 'map', label: 'Ward map', stage: 1 },
+  { id: 'reports', label: 'Reports', stage: 1 },
+  { id: 'chat', label: 'WhatsApp and USSD', stage: 2 },
+  { id: 'queue', label: 'Partner queues', stage: 3 },
+  { id: 'pickers', label: 'Pickers and recyclables', stage: 4 },
+  { id: 'review', label: 'Review and forum', stage: 5 },
+  { id: 'tables', label: 'Data tables', stage: 1, admin: true },
+  { id: 'settings', label: 'Settings', stage: 1, admin: true }
+];
+const BUILT = 2;
+
+const state = { role: 'committee', ward: 'W1', view: 'map', filter: 'all', selected: null, table: 'reports', confirmReset: false };
+try { const s = JSON.parse(sessionStorage.getItem('bwh-ui') || '{}'); Object.assign(state, s, { confirmReset: false }); } catch (e) {}
+const persistUi = () => { try { sessionStorage.setItem('bwh-ui', JSON.stringify({ role: state.role, ward: state.ward, view: state.view, table: state.table })); } catch (e) {} };
+const currentRole = () => ROLES.find(r => r.id === state.role) || ROLES[0];
+
+/* ================= Top bar ================= */
+const roleSel = document.getElementById('role-select');
+const wardSel = document.getElementById('ward-select');
+roleSel.innerHTML = ROLES.map(r => `<option value="${r.id}">${esc(r.label)}</option>`).join('');
+wardSel.innerHTML = store.all('wards').map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('');
+roleSel.value = state.role; wardSel.value = state.ward;
+roleSel.addEventListener('change', () => { state.role = roleSel.value; render(); });
+wardSel.addEventListener('change', () => { state.ward = wardSel.value; state.selected = null; render(); });
+
+/* ================= Nav ================= */
+function renderNav() {
+  const groups = [['Working now', VIEWS.filter(v => v.stage <= BUILT && !v.admin)], ['Coming next', VIEWS.filter(v => v.stage > BUILT)], ['Setup', VIEWS.filter(v => v.admin)]];
+  document.getElementById('nav').innerHTML = groups.map(([label, items]) =>
+    `<div class="rail-label">${label}</div>` + items.map(v => {
+      const built = v.stage <= BUILT;
+      return `<button class="nav-item" data-view="${v.id}" ${built ? '' : 'disabled'} ${state.view === v.id ? 'aria-current="page"' : ''}>
+        <span>${esc(v.label)}</span>${built ? '' : `<span class="stage-chip">Stage ${v.stage}</span>`}</button>`;
+    }).join('')
+  ).join('');
+}
+document.getElementById('nav').addEventListener('click', e => {
+  const b = e.target.closest('.nav-item'); if (!b || b.disabled) return;
+  state.view = b.dataset.view; render();
+});
+
+/* ================= Shared bits ================= */
+function wardReports() { return store.where('reports', r => r.ward === state.ward && r.status !== 'merged'); }
+function statusOf(r) { return isOverdue(r) ? 'overdue' : r.status; }
+function statusPill(r) {
+  const st = STATUS[r.status] || { label: 'Merged', color: 'var(--muted)' };
+  const over = isOverdue(r) ? `<span class="pill" style="color:var(--st-overdue)"><span class="dot overdue"></span>Overdue</span>` : '';
+  return `<span class="pill"><span class="dot" style="background:${st.color}"></span>${st.label}</span> ${over}`;
+}
+function statsBar(list) {
+  const counts = { all: list.length, new: 0, assigned: 0, in_progress: 0, fixed: 0, overdue: 0 };
+  list.forEach(r => { counts[r.status]++; if (isOverdue(r)) counts.overdue++; });
+  const items = [['all', 'All open and fixed', null], ['new', 'New', STATUS.new.color], ['assigned', 'Assigned', STATUS.assigned.color], ['in_progress', 'In progress', STATUS.in_progress.color], ['fixed', 'Fixed', STATUS.fixed.color], ['overdue', 'Overdue', 'overdue']];
+  return `<div class="stats" role="group" aria-label="Filter by status">` + items.map(([k, label, c]) =>
+    `<button class="stat" data-filter="${k}" aria-pressed="${state.filter === k}">${c === 'overdue' ? '<span class="dot overdue"></span>' : c ? `<span class="dot" style="background:${c}"></span>` : ''}${label} <b>${counts[k]}</b></button>`
+  ).join('') + `</div>`;
+}
+function passesFilter(r) {
+  if (state.filter === 'all') return true;
+  if (state.filter === 'overdue') return isOverdue(r);
+  return r.status === state.filter;
+}
+function roleNote() {
+  const role = currentRole();
+  if (role.partner) return `Cases owned by ${esc(partnerShort(role.partner))} are highlighted; others are faded.`;
+  if (role.id === 'resident') return 'Residents see every report and its status, but not who is assigned.';
+  return 'The ward committee sees every report, owner and due time.';
+}
+
+/* ================= Map view ================= */
+function wardShape(wardId) {
+  if (wardId === 'W1') {
+    return `
+      <path d="M120 130 L380 70 L700 90 L900 170 L930 400 L820 560 L520 600 L230 560 L90 400 Z" fill="var(--ward-fill)" stroke="var(--line)" stroke-width="2"/>
+      <path d="M60 330 C300 300, 600 320, 960 280" fill="none" stroke="var(--road)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M300 90 C310 260, 330 420, 360 590" fill="none" stroke="var(--road)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M760 110 C800 220, 830 330, 800 540" fill="none" stroke="var(--road)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M560 600 C620 520, 700 440, 740 380 C780 320, 860 300, 940 300" fill="none" stroke="var(--water)" stroke-width="5" stroke-dasharray="2 0"/>
+      ${landmark(520, 360, 'Market')}
+      ${landmark(330, 175, 'Clinic')}
+      ${landmark(610, 145, 'Primary school')}
+      ${landmark(470, 470, 'Shopping centre')}
+      <text x="70" y="372" font-size="17" fill="var(--muted)">Main road to the city centre</text>
+      <text x="610" y="560" font-size="17" fill="var(--muted)">Stream</text>
+      <text x="960" y="625" font-size="17" text-anchor="end" fill="var(--muted)">To Richmond landfill →</text>`;
+  }
+  return `
+    <rect x="140" y="110" width="720" height="440" rx="18" fill="var(--ward-fill)" stroke="var(--line)" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M140 330 H860" stroke="var(--road)" stroke-width="10"/>
+    <path d="M500 110 V550" stroke="var(--road)" stroke-width="6"/>
+    ${landmark(430, 250, 'Shops')}
+    ${landmark(690, 180, 'Community hall')}
+    ${landmark(300, 455, 'Park')}
+    <text x="500" y="600" font-size="18" text-anchor="middle" fill="var(--muted)">Placeholder layout until the second ward is chosen</text>`;
+}
+function landmark(x, y, label) {
+  return `<g><rect x="${x - 6}" y="${y - 6}" width="12" height="12" rx="2" fill="var(--muted)"/><text x="${x + 12}" y="${y + 6}" font-size="18" fill="var(--fg)">${esc(label)}</text></g>`;
+}
+function pinSvg(r) {
+  const role = currentRole();
+  const dim = role.partner && r.owner !== role.partner;
+  const radius = r.size === 'large' ? 15 : r.size === 'medium' ? 12 : 9;
+  const color = (STATUS[r.status] || STATUS.new).color;
+  const dups = duplicatesOf(r).length;
+  const over = isOverdue(r) ? `<circle r="${radius + 6}" fill="none" stroke="var(--st-overdue)" stroke-width="3"/>` : '';
+  const badge = dups ? `<g transform="translate(${radius},${-radius})"><circle r="8" fill="var(--surface)" stroke="var(--fg)" stroke-width="1"/><text text-anchor="middle" y="4" font-size="10" font-weight="700" fill="var(--fg)">${dups + 1}</text></g>` : '';
+  return `<g class="pin${dim ? ' dim' : ''}${state.selected === r.id ? ' selected' : ''}${r.live ? ' fresh' : ''}" transform="translate(${r.x},${r.y})" tabindex="0" role="button" data-id="${r.id}" aria-label="${esc(r.id + ', ' + CATEGORIES[r.category] + ', ' + (STATUS[r.status] || {}).label + ', ' + r.near)}">
+    ${over}<circle class="core" r="${radius}" fill="${color}" stroke="var(--surface)" stroke-width="2"/>${badge}</g>`;
+}
+function renderMap(el) {
+  const ward = store.get('wards', state.ward);
+  const list = wardReports();
+  const shown = list.filter(passesFilter).sort((a, b) => (a.size === 'large') - (b.size === 'large'));
+  const sel = state.selected && store.get('reports', state.selected);
+  el.innerHTML = `
+    <div class="view-head"><div><h2>${esc(ward.name)}</h2><p>${esc(ward.note)}. ${roleNote()}</p></div></div>
+    ${statsBar(list)}
+    <div class="map-layout">
+      <div class="map-card">
+        <svg viewBox="0 0 1000 640" role="group" aria-label="Schematic map of ${esc(ward.name)} with report pins">
+          ${wardShape(state.ward)}
+          ${shown.map(pinSvg).join('')}
+        </svg>
+        <div class="map-note">Schematic map, not to scale; positions are illustrative. Pin size shows the size of the dump; a number shows merged duplicate reports; a red ring means overdue.</div>
+      </div>
+      <aside class="panel" aria-live="polite">${sel ? detailPanel(sel) : summaryPanel(list)}</aside>
+    </div>`;
+}
+function summaryPanel(list) {
+  const open = list.filter(r => r.status !== 'fixed');
+  const fixed = list.filter(r => r.status === 'fixed');
+  const fixHours = fixed.map(r => (r.fixed - r.created) / HOUR).sort((a, b) => a - b);
+  const median = fixHours.length ? Math.round(fixHours[Math.floor(fixHours.length / 2)]) : null;
+  const byOwner = {};
+  open.forEach(r => { const k = r.owner ? partnerShort(r.owner) : 'Not yet assigned'; byOwner[k] = (byOwner[k] || 0) + 1; });
+  return `<h3>This ward at a glance</h3>
+    <dl class="kv">
+      <dt>Open reports</dt><dd>${open.length}</dd>
+      <dt>Overdue</dt><dd>${open.filter(isOverdue).length}</dd>
+      <dt>Fixed</dt><dd>${fixed.length}</dd>
+      <dt>Median fix time</dt><dd>${median == null ? '—' : median + ' hours'}</dd>
+    </dl>
+    <div><div class="ref" style="margin-bottom:6px">OPEN REPORTS BY OWNER</div>
+      <dl class="kv">${Object.entries(byOwner).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('') || '<dd class="empty">None</dd>'}</dl></div>
+    <p class="hint">Select a pin to see the report, its AI tags and who has done what.</p>`;
+}
+function detailPanel(r) {
+  const role = currentRole();
+  const dups = duplicatesOf(r);
+  const events = store.where('report_events', e => e.report === r.id || dups.some(d => d.id === e.report)).sort((a, b) => a.time - b.time);
+  const showOwner = role.id !== 'resident';
+  return `<div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
+      <div><h3>${esc(CATEGORIES[r.category])}</h3><div class="ref">${r.id} · ${esc(r.channel)} · ${ago(r.created)}</div></div>
+      <button class="btn" data-close>Close</button></div>
+    <div>${statusPill(r)}</div>
+    <dl class="kv">
+      <dt>Where</dt><dd>${esc(r.near)}</dd>
+      <dt>Size</dt><dd>${esc(SIZES[r.size])}</dd>
+      ${showOwner ? `<dt>Owner</dt><dd>${r.owner ? esc(store.get('partners', r.owner).name) : 'Waiting for routing'}</dd>
+      <dt>Due</dt><dd>${r.due ? fmtDate(r.due) : '—'}</dd>` : ''}
+      ${r.fixed ? `<dt>Fixed</dt><dd>${fmtDate(r.fixed)} (${Math.round((r.fixed - r.created) / HOUR)} h)</dd>` : ''}
+      <dt>Duplicates</dt><dd>${dups.length ? dups.map(d => d.id).join(', ') + ' merged' : 'None'}</dd>
+    </dl>
+    <div class="detail-photo">${photoMarkup(r)}</div>
+    <div><div class="ref" style="margin-bottom:6px">AI TAGS · ${r.ai_confidence}% CONFIDENT</div>
+      <div class="tags"><span class="tag">${esc(CATEGORIES[r.category])}</span><span class="tag">${esc(r.size)}</span>${r.hazards.map(h => `<span class="tag" style="border-color:var(--st-overdue)">${esc(HAZARDS[h])}</span>`).join('')}</div></div>
+    <div><div class="ref" style="margin-bottom:6px">HISTORY</div>
+      <ol class="timeline">${events.map(e => `<li><time>${fmtDate(e.time)}</time><b>${esc(e.actor)}</b> · ${esc(e.action)}${e.note ? ' — ' + esc(e.note) : ''}${e.report !== r.id ? ` <span class="ref">(${e.report})</span>` : ''}</li>`).join('')}</ol></div>`;
+}
+
+/* ================= Reports list ================= */
+function renderReports(el) {
+  const ward = store.get('wards', state.ward);
+  const list = wardReports();
+  const shown = list.filter(passesFilter).sort((a, b) => b.created - a.created);
+  const showOwner = currentRole().id !== 'resident';
+  el.innerHTML = `
+    <div class="view-head"><div><h2>Reports in ${esc(ward.name)}</h2><p>Newest first. Select a row to open it on the map.</p></div></div>
+    ${statsBar(list)}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Reference</th><th>Reported</th><th>Type</th><th>Size</th><th>Where</th><th>Status</th>${showOwner ? '<th>Owner</th><th>Due</th>' : ''}<th>Channel</th></tr></thead>
+      <tbody>${shown.map(r => `<tr class="clickable" data-open="${r.id}" tabindex="0">
+        <td class="mono">${r.id}</td><td>${ago(r.created)}</td><td>${esc(CATEGORIES[r.category])}</td><td>${esc(r.size)}</td><td>${esc(r.near)}</td>
+        <td>${statusPill(r)}</td>${showOwner ? `<td>${r.owner ? esc(partnerShort(r.owner)) : '—'}</td><td>${r.due && r.status !== 'fixed' ? fmtDate(r.due) : '—'}</td>` : ''}<td>${esc(r.channel)}</td></tr>`).join('') || `<tr><td colspan="9" class="empty">No reports match this filter.</td></tr>`}
+      </tbody></table></div>`;
+}
+
+/* ================= Data tables (admin) ================= */
+function adminOnly(el, title) {
+  el.innerHTML = `<div class="panel locked"><h3>${esc(title)} is for the administrator</h3><p class="empty">Switch “Viewing as” to Administrator to open it.</p>
+    <div><button class="btn btn-primary" data-become-admin>View as Administrator</button></div></div>`;
+}
+function cell(v, key) {
+  if (v == null) return '<span class="empty">—</span>';
+  if (Array.isArray(v)) return esc(v.join(', '));
+  if (typeof v === 'number' && /^(created|due|fixed|time|date|registered)$/.test(key)) return fmtDay(v);
+  return esc(v);
+}
+function renderTables(el) {
+  if (state.role !== 'admin') return adminOnly(el, 'Data tables');
+  const t = state.table;
+  const rows = store.all(t);
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  el.innerHTML = `
+    <div class="view-head"><div><h2>Data tables</h2><p>The prototype's database, exactly as the real app will hold it in PostgreSQL. Every row is invented sample data.</p></div></div>
+    <div class="tabs" role="tablist">${store.tables().map(n => `<button class="tab" role="tab" data-table="${n}" aria-selected="${n === t}">${n}<span class="count">${store.all(n).length}</span></button>`).join('')}</div>
+    <div class="table-wrap"><table>
+      <thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `<tr>${cols.map(c => `<td class="${typeof r[c] === 'number' && !/^(created|due|fixed|time|date|registered)$/.test(c) ? 'num' : ''}">${cell(r[c], c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+/* ================= Settings (admin) ================= */
+function renderSettings(el) {
+  if (state.role !== 'admin') return adminOnly(el, 'Settings');
+  const decisions = [
+    ['Second demo ward', 'Cowdray Park plus a contrasting ward, such as the city centre or a low-density suburb.'],
+    ['Name and colours', 'Keep “Bulawayo Waste Hub” or choose another name; pick colours no existing organisation uses.'],
+    ['isiNdebele and Shona wording', 'A native speaker to check the bot’s messages (needed by Stage 2).'],
+    ['GitHub and Netlify accounts', 'So the code and demo link belong to you.'],
+    ['First audience', 'Which stakeholder sees the demo first.']
+  ];
+  el.innerHTML = `
+    <div class="view-head"><div><h2>Settings</h2><p>Everything the survey may change lives here as settings, not code: wards, partners, routing rules and indicators.</p></div></div>
+    <div class="settings-grid">
+      <section class="panel"><h3>Decisions pending</h3>
+        <div>${decisions.map(([t, d]) => `<div class="decision"><div><b>${esc(t)}</b><p>${esc(d)}</p></div><span class="pill pending">Pending</span></div>`).join('')}</div></section>
+      <section class="panel"><h3>Routing rules (the Charter)</h3>
+        <div class="table-wrap"><table><thead><tr><th>Report</th><th>Goes to</th><th>Within</th></tr></thead><tbody>
+        ${store.all('routing_rules').map(r => `<tr><td>${r.hazard ? esc(HAZARDS[r.hazard]) : esc(CATEGORIES[r.category]) + (r.size !== 'any' ? ', ' + r.size : '')}</td><td>${esc(partnerShort(r.partner))}</td><td class="num">${r.hours} h</td></tr>`).join('')}
+        </tbody></table></div></section>
+      <section class="panel"><h3>Indicators and survey baselines</h3>
+        <p class="empty" style="margin:0">Baselines fill in from the questionnaire after data collection.</p>
+        <div class="table-wrap"><table><thead><tr><th>Code</th><th>Indicator</th><th>Baseline</th></tr></thead><tbody>
+        ${store.all('indicators').map(i => `<tr><td class="mono">${i.code}</td><td style="white-space:normal">${esc(i.name)}</td><td><span class="pill pending">Awaiting survey</span></td></tr>`).join('')}
+        </tbody></table></div></section>
+      <section class="panel"><h3>Demo data</h3>
+        <p class="empty" style="margin:0">Restore the original sample data. Anything changed during a demo is cleared.</p>
+        ${state.confirmReset
+          ? `<div class="confirm"><span>Reset all sample data?</span><button class="btn btn-primary" data-reset-yes>Reset</button><button class="btn" data-reset-no>Cancel</button></div>`
+          : `<div><button class="btn" data-reset>Reset demo data</button></div>`}
+      </section>
+    </div>`;
+}
+
+/* ================= Render + events ================= */
+const viewEl = document.getElementById('view');
+function render() {
+  roleSel.value = state.role; wardSel.value = state.ward;
+  renderNav();
+  ({ map: renderMap, reports: renderReports, chat: renderChat, tables: renderTables, settings: renderSettings }[state.view] || renderMap)(viewEl);
+  afterRender();
+  persistUi();
+}
+viewEl.addEventListener('click', e => {
+  const t = e.target;
+  const f = t.closest('[data-filter]'); if (f) { state.filter = f.dataset.filter; render(); return; }
+  const pin = t.closest('.pin'); if (pin) { state.selected = pin.dataset.id; render(); return; }
+  if (t.closest('[data-close]')) { state.selected = null; render(); return; }
+  const row = t.closest('[data-open]'); if (row) { state.selected = row.dataset.open; state.view = 'map'; state.filter = 'all'; render(); return; }
+  const tab = t.closest('[data-table]'); if (tab) { state.table = tab.dataset.table; render(); return; }
+  if (t.closest('[data-become-admin]')) { state.role = 'admin'; render(); return; }
+  if (t.closest('[data-reset]')) { state.confirmReset = true; render(); return; }
+  if (t.closest('[data-reset-no]')) { state.confirmReset = false; render(); return; }
+  if (t.closest('[data-reset-yes]')) { store.reset(); resetSims(); state.confirmReset = false; state.selected = null; render(); return; }
+});
+viewEl.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest('.pin, [data-open]'); if (!el) return;
+  e.preventDefault(); el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+});
+
+/* ================= Stage 2: sample photos ================= */
+const PHOTOS = {
+  bags: { label: 'Bags of rubbish', category: 'household', hazards: [] },
+  burning: { label: 'Rubbish burning', category: 'household', hazards: ['burning'] },
+  rubble: { label: "Builders' rubble", category: 'rubble', hazards: [] },
+  plastics: { label: 'Plastic bottles', category: 'plastics', hazards: [] },
+  tyres: { label: 'Old tyres', category: 'tyres', hazards: [] },
+  garden: { label: 'Garden cuttings', category: 'garden', hazards: [] },
+  chemicals: { label: 'Leaking drums', category: 'hazardous', hazards: [] }
+};
+const CAT_PHOTO = { household: 'bags', rubble: 'rubble', plastics: 'plastics', tyres: 'tyres', garden: 'garden', hazardous: 'chemicals' };
+const uploads = {}; // uploaded photos stay in memory for this visit only
+
+function photoSvg(key) {
+  // Illustrations stand in for real photos; their colours are the "photo" itself, so they stay fixed in both themes.
+  const ground = '<rect width="160" height="120" fill="#cdd8de"/><path d="M0 70 Q80 60 160 72 V120 H0Z" fill="#b79f86"/>';
+  const bag = (x, y, r, c) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.82}" fill="${c}"/><path d="M${x - 3} ${y - r * 0.8}l3 -6l3 6" fill="${c}"/>`;
+  const art = {
+    bags: bag(52, 88, 16, '#2f3b42') + bag(78, 92, 18, '#46545c') + bag(104, 86, 15, '#263238') + bag(70, 74, 13, '#56656d') + '<rect x="118" y="94" width="10" height="6" fill="#e0e0e0" transform="rotate(-20 123 97)"/>',
+    burning: bag(60, 92, 16, '#2f3b42') + bag(90, 94, 17, '#3d4a51') + '<path d="M72 86 C66 66 80 62 76 46 C88 58 96 64 90 86 Z" fill="#f08a24"/><path d="M78 86 C75 74 83 70 81 60 C88 70 90 76 86 86 Z" fill="#ffd54f"/><circle cx="84" cy="30" r="12" fill="#9e9e9e" opacity="0.7"/><circle cx="100" cy="18" r="10" fill="#bdbdbd" opacity="0.6"/>',
+    rubble: '<path d="M30 104 L48 78 L66 90 L80 70 L102 86 L120 76 L136 104 Z" fill="#9e9a94"/><rect x="50" y="88" width="16" height="10" fill="#b0503a"/><rect x="88" y="90" width="18" height="9" fill="#a7472f" transform="rotate(12 97 94)"/><rect x="70" y="96" width="12" height="8" fill="#c7c2ba"/>',
+    plastics: [[40, 84], [56, 90], [72, 82], [88, 92], [104, 86], [62, 76], [96, 76], [120, 94]].map(([x, y], i) => `<rect x="${x}" y="${y}" width="10" height="22" rx="4" fill="${['#64b5f6', '#4fc3f7', '#e0f2f1', '#81d4fa'][i % 4]}" transform="rotate(${(i * 37) % 90 - 45} ${x + 5} ${y + 11})"/>`).join(''),
+    tyres: '<circle cx="58" cy="88" r="20" fill="#212121"/><circle cx="58" cy="88" r="9" fill="#cdd8de"/><circle cx="98" cy="90" r="19" fill="#2b2b2b"/><circle cx="98" cy="90" r="8" fill="#b79f86"/><ellipse cx="78" cy="70" rx="20" ry="8" fill="#1a1a1a"/><ellipse cx="78" cy="70" rx="9" ry="3.5" fill="#cdd8de"/>',
+    garden: '<path d="M30 100 Q60 70 90 96 Q110 70 136 100 Z" fill="#5d8a3a"/><path d="M44 96 Q58 78 72 94 M96 92 Q112 78 124 96" stroke="#3d6b26" stroke-width="3" fill="none"/><path d="M60 100 L100 80" stroke="#6d4c41" stroke-width="4"/>',
+    chemicals: '<rect x="44" y="64" width="26" height="40" rx="3" fill="#1e5aa8"/><rect x="78" y="68" width="26" height="36" rx="3" fill="#2a6fc4"/><path d="M104 104 Q118 108 136 104" stroke="#6a8f2a" stroke-width="6" fill="none"/><path d="M57 72 l8 14 h-16 z" fill="#ffd54f"/><text x="57" y="84" font-size="9" text-anchor="middle" fill="#212121" font-weight="700">!</text>'
+  };
+  return `<svg viewBox="0 0 160 120" role="img" aria-label="${esc((PHOTOS[key] || {}).label || 'Photo')}">${ground}${art[key] || ''}</svg>`;
+}
+function photoMarkup(r) {
+  if (r.photo === 'upload' && uploads[r.id]) return `<img src="${uploads[r.id]}" alt="Photo sent by the resident">`;
+  return photoSvg(r.photo && PHOTOS[r.photo] ? r.photo : CAT_PHOTO[r.category] || 'bags');
+}
+
+/* ================= Stage 2: the report pipeline =================
+   The same steps the real app will run on a server:
+   receive -> AI triage -> duplicate check -> routing by the Charter. */
+const feed = [];
+function logFeed(kind, text, reportId) { feed.unshift({ time: Date.now(), kind, text, reportId: reportId || null }); }
+function nextReportId() {
+  const max = Math.max(0, ...store.all('reports').map(r => Number(r.id.slice(4)) || 0));
+  return 'BWH-' + String(max + 1).padStart(5, '0');
+}
+function addEvent(report, actor, action, note, at) { store.insert('report_events', { report, time: at || Date.now(), actor, action, note: note || '' }); }
+function submitReport(d) {
+  const sp = SPOTS[d.ward][d.spot];
+  const now = Date.now();
+  const id = nextReportId();
+  const jit = () => Math.round((Math.random() - 0.5) * 24);
+  const fromSample = d.photo && d.photo !== 'upload';
+  const r = {
+    id, ward: d.ward, near: sp.near, x: sp.x + jit(), y: sp.y + jit(), channel: d.channel,
+    category: d.category, size: d.size, hazards: d.hazards, created: now, status: 'new',
+    merged_into: null, owner: null, due: null, fixed: null,
+    ai_confidence: fromSample ? 86 + Math.floor(Math.random() * 11) : 70 + Math.floor(Math.random() * 10),
+    photo: d.photo || null, live: true
+  };
+  store.insert('reports', r);
+  if (d.photo === 'upload' && d.uploadData) uploads[id] = d.uploadData;
+  const wardName = store.get('wards', d.ward).name;
+  addEvent(id, 'Resident', 'Reported', 'via ' + d.channel, now);
+  logFeed('new', `${id} received by ${d.channel} in ${wardName}.`, id);
+  const tagNote = CATEGORIES[r.category] + ', ' + r.size + (r.hazards.length ? ', ' + r.hazards.map(h => HAZARDS[h].toLowerCase()).join(', ') : '');
+  addEvent(id, 'AI triage', 'Tagged', tagNote, now + 1000);
+  logFeed('new', `AI triage tagged it: ${tagNote} (${r.ai_confidence}% confident).`, id);
+
+  const nearby = store.where('reports', x => x.ward === r.ward && x.id !== id && x.status !== 'merged' && x.status !== 'fixed')
+    .map(x => ({ x, dist: Math.hypot(x.x - r.x, x.y - r.y) })).filter(o => o.dist < 70).sort((a, b) => a.dist - b.dist);
+  if (nearby.length) {
+    const prim = nearby[0].x;
+    store.update('reports', id, { status: 'merged', merged_into: prim.id });
+    const extra = r.hazards.filter(h => !prim.hazards.includes(h));
+    if (extra.length) store.update('reports', prim.id, { hazards: prim.hazards.concat(extra) });
+    addEvent(id, 'AI triage', 'Merged', 'Same site as ' + prim.id, now + 2000);
+    logFeed('merge', `Same site as open report ${prim.id}, so it was merged there instead of creating a new case${extra.length ? '; the new hazard was added to that case' : ''}.`, prim.id);
+    return { report: store.get('reports', id), mergedInto: prim };
+  }
+  const rule = matchRule(store.all('routing_rules'), r);
+  store.update('reports', id, { status: 'assigned', owner: rule.partner, due: now + rule.hours * HOUR });
+  addEvent(id, 'Routing', 'Assigned', 'To ' + partnerShort(rule.partner) + ', due within ' + rule.hours + ' h (rule ' + rule.id + ')', now + 3000);
+  logFeed('route', `No open report at that spot, so a new case was opened and routed to ${partnerShort(rule.partner)}, due within ${rule.hours} hours (Charter rule ${rule.id}).`, id);
+  return { report: store.get('reports', id), rule };
+}
+function statusText(r) {
+  if (!r) return null;
+  const target = r.status === 'merged' ? store.get('reports', r.merged_into) : r;
+  const st = (STATUS[target.status] || {}).label || target.status;
+  return { target, st, overdue: isOverdue(target) };
+}
+
+/* ================= Phone-language drafts (isiNdebele and chiShona) =================
+   Draft translations, to be checked by native speakers. English is the fallback. */
+const I18N = {
+  cat: {
+    nd: { household: 'Izibi zasendlini', rubble: 'Imfucumfucu yokwakha', garden: 'Izibi zesivandeni', plastics: 'Amaplastiki', tyres: 'Amathaya amadala', hazardous: 'Izibi eziyingozi (imithi kumbe amakhemikhali)' },
+    sn: { household: 'Marara epamba', rubble: 'Marara ekuvaka', garden: 'Marara egadheni', plastics: 'Mapurasitiki', tyres: 'Matayi akare', hazardous: 'Marara ane njodzi (mishonga kana makemikari)' }
+  },
+  hz: {
+    nd: { drain: 'Kuvale umgelo', burning: 'Kuyatshiswa', school: 'Eduze kwesikolo', market: 'Emakethe' },
+    sn: { drain: 'Kuvhara mugero', burning: 'Kuri kupiswa', school: 'Pedyo nechikoro', market: 'Pamusika' }
+  },
+  st: {
+    en: { new: 'New', assigned: 'Assigned', in_progress: 'In progress', fixed: 'Fixed', overdue: 'overdue' },
+    nd: { new: 'Okutsha', assigned: 'Kuthunyelwe', in_progress: 'Kuyalungiswa', fixed: 'Kulungisiwe', overdue: 'sekudlule isikhathi' },
+    sn: { new: 'Itsva', assigned: 'Yapihwa', in_progress: 'Iri kugadziriswa', fixed: 'Yagadziriswa', overdue: 'yanonoka' }
+  },
+  photo: {
+    nd: { bags: 'Amasaka ezibi', burning: 'Izibi eziyatsha', rubble: 'Imfucumfucu', plastics: 'Amabhodlela eplastiki', tyres: 'Amathaya amadala', garden: 'Izibi zesivandeni', chemicals: 'Imigqomo evuzayo' },
+    sn: { bags: 'Mabhegi emarara', burning: 'Marara ari kutsva', rubble: 'Marara ekuvaka', plastics: 'Mabhodhoro epurasitiki', tyres: 'Matayi akare', garden: 'Marara egadheni', chemicals: 'Madhiramu ari kubuda' }
+  },
+  spot: {
+    nd: {
+      'W1:0': 'Ematafuleni emakethe ngasemgwaqweni omkhulu', 'W1:1': 'Lapho okuchaphwa khona umfula, empumalanga', 'W1:2': 'Endaweni evulekileyo ngemva komtholampilo',
+      'W1:3': 'Ocingweni lwesikolo samabanga aphansi', 'W1:4': 'Esitebhini samabhasi ezitolo', 'W1:5': 'Isiza esingelamuntu, eningizimu-ntshonalanga',
+      'W1:6': 'Umgelo eceleni komgwaqo ozungezayo', 'W1:7': 'Indledlana eya emfuleni',
+      'W2:0': 'Umgwaqwana ngemva kwezitolo', 'W2:1': 'Umgelo wamanzi ezulu, Main Street', 'W2:2': 'Ekhoneni lepaki', 'W2:3': 'Ngemva kwehholo lomphakathi'
+    },
+    sn: {
+      'W1:0': 'Pamatafura emusika pedyo nemugwagwa mukuru', 'W1:1': 'Pakuyambuka rwizi, kumabvazuva', 'W1:2': 'Panzvimbo yakavhurika seri kwekiriniki',
+      'W1:3': 'Pafenzi yechikoro chepuraimari', 'W1:4': 'Pachiteshi chemabhazi pazvitoro', 'W1:5': 'Chitandi chisina munhu, kumaodzanyemba-mavirira',
+      'W1:6': 'Mugero padivi pemugwagwa unotenderera', 'W1:7': 'Nzira inoenda kurwizi',
+      'W2:0': 'Kanzira kuseri kwezvitoro', 'W2:1': 'Mugero wemvura yekunaya, Main Street', 'W2:2': 'Pakona yepaki', 'W2:3': 'Kuseri kwehoro yenharaunda'
+    }
+  },
+  day: {
+    nd: { Monday: 'Msombuluko', Tuesday: 'Lwesibili', Wednesday: 'Lwesithathu', Thursday: 'Lwesine', Friday: 'Lwesihlanu', Saturday: 'Mgqibelo', Sunday: 'Sonto' },
+    sn: { Monday: 'Muvhuro', Tuesday: 'Chipiri', Wednesday: 'Chitatu', Thursday: 'China', Friday: 'Chishanu', Saturday: 'Mugovera', Sunday: 'Svondo' }
+  },
+  area: {
+    nd: { 'North of the main road': 'Enyakatho komgwaqo omkhulu', 'South of the main road': 'Eningizimu komgwaqo omkhulu', 'Market and shopping centre': 'Emakethe lezitolo', 'Whole ward': 'Isigaba sonke' },
+    sn: { 'North of the main road': 'Kuchamhembe kwemugwagwa mukuru', 'South of the main road': 'Kumaodzanyemba kwemugwagwa mukuru', 'Market and shopping centre': 'Musika nezvitoro', 'Whole ward': 'Wadhi yose' }
+  },
+  sched: {
+    nd: { 'Missed last week': 'akuqoqwanga iviki ephelileyo' },
+    sn: { 'Missed last week': 'hazvina kutorwa svondo rapfuura' }
+  }
+};
+const tr = (kind, key, lang, fallback) => ((I18N[kind] || {})[lang] || {})[key] || fallback;
+const catL = (k, lang) => tr('cat', k, lang, CATEGORIES[k]);
+const hzL = (k, lang) => tr('hz', k, lang, HAZARDS[k]);
+const stL = (k, lang) => tr('st', k, lang, tr('st', k, 'en', k));
+const photoL = (k, lang) => tr('photo', k, lang, PHOTOS[k].label);
+const spotL = (ward, i, lang) => tr('spot', ward + ':' + i, lang, SPOTS[ward][i].near);
+const dayL = (d, lang) => tr('day', d, lang, d);
+const areaL = (a, lang) => tr('area', a, lang, a);
+const schedL = (s, lang) => tr('sched', s, lang, s.toLowerCase());
+
+/* ================= Stage 2: WhatsApp simulator ================= */
+const T = {
+  en: {
+    menu: 'What would you like to do?',
+    m_report: 'Report dumped waste', m_check: 'Check a report', m_days: 'Collection days',
+    photo: 'Please send a photo of the waste. In this demo, pick a sample photo or attach your own.',
+    ai: (lbl) => `Thanks. It looks like: ${lbl}. Is that right?`,
+    yes: 'Yes', change: 'Change type', pickType: 'What kind of waste is it?',
+    uploadType: 'Photo received. In the prototype the AI cannot read your own photo yet, so please choose the type.',
+    size: 'How big is it?', where: 'Where is it? (A real phone would send its location.)',
+    hazard: 'Is it any of these?', none: 'None of these',
+    confirm: (d) => `Please confirm:\n${d}`, send: 'Send report', cancel: 'Cancel',
+    thanks: (id) => `Thank you. Your reference is ${id}. We will message you when it is fixed.`,
+    merged: (p) => `Someone already reported this spot, so your report was added to case ${p}. That makes it more urgent.`,
+    routed: (who, h) => `It has been passed to ${who}, who should deal with it within ${h} hours.`,
+    askRef: 'Type the reference number, for example BWH-01041 or just 1041.',
+    notFound: 'I could not find that reference. Please check the number.',
+    status: (id, st) => `Report ${id}: ${st}.`,
+    days: 'Collection days for your ward:', cancelled: 'Cancelled. Nothing was sent.', again: 'Main menu'
+  },
+  nd: {
+    menu: 'Ufuna ukwenzani?',
+    m_report: 'Bika izibi ezilahliweyo', m_check: 'Hlola umbiko', m_days: 'Insuku zokuqoqa izibi',
+    photo: 'Sicela uthumele isithombe sezibi.',
+    ai: (lbl) => `Siyabonga. Kubukeka kungu: ${lbl}. Kuliqiniso?`,
+    yes: 'Yebo', change: 'Guqula', pickType: 'Yizibi bani?',
+    uploadType: 'Isithombe sitholakele. Sicela ukhethe uhlobo lwezibi.',
+    size: 'Kukhulu kangakanani?', where: 'Kungaphi?',
+    hazard: 'Kukhona yini kulokhu?', none: 'Kakukho',
+    confirm: (d) => `Sicela uqinisekise:\n${d}`, send: 'Thumela', cancel: 'Yekela',
+    thanks: (id) => `Siyabonga. Inombolo yombiko wakho ngu ${id}. Sizakwazisa nxa sekulungisiwe.`,
+    merged: (p) => `Indawo le isibikiwe, ngakho umbiko wakho uhlanganiswe lo ${p}.`,
+    routed: (who, h) => `Umbiko uthunyelwe ku ${who}, okumele bawulungise phakathi kwamahola angu ${h}.`,
+    askRef: 'Bhala inombolo yombiko, isibonelo BWH-01041.',
+    notFound: 'Inombolo leyo kayitholakalanga.',
+    status: (id, st) => `Umbiko ${id}: ${st}.`,
+    days: 'Insuku zokuqoqa izibi esigabeni sakho:', cancelled: 'Kuyekelwe.', again: 'Imenyu'
+  }
+};
+T.sn = {
+  menu: 'Munoda kuitei?',
+  m_report: 'Zivisa marara akaraswa', m_check: 'Ongorora mushumo', m_days: 'Mazuva ekutora marara',
+  photo: 'Ndapota tumirai mufananidzo wemarara.',
+  ai: (lbl) => `Ndatenda. Zvinoita sekuti: ${lbl}. Ndizvo here?`,
+  yes: 'Hongu', change: 'Chinja', pickType: 'Imarara erudzii?',
+  uploadType: 'Mufananidzo watambirwa. Ndapota sarudzai rudzi rwemarara.',
+  size: 'Akakura zvakadii?', where: 'Ari kupi?',
+  hazard: 'Pane chimwe chezvinotevera here?', none: 'Hapana',
+  confirm: (d) => `Ndapota simbisai:\n${d}`, send: 'Tumira', cancel: 'Kanzura',
+  thanks: (id) => `Ndatenda. Nhamba yemushumo wenyu ndeye ${id}. Tichakuzivisai kana zvagadziriswa.`,
+  merged: (p) => `Nzvimbo iyi yakatoziviswa kare, saka mushumo wenyu wabatanidzwa ne ${p}.`,
+  routed: (who, h) => `Mushumo wapfuudzwa ku ${who}, vanofanira kuugadzirisa mukati memaawa ${h}.`,
+  askRef: 'Nyorai nhamba yemushumo, semuenzaniso BWH-01041.',
+  notFound: 'Nhamba iyoyo haina kuwanikwa.',
+  status: (id, st) => `Mushumo ${id}: ${st}.`,
+  days: 'Mazuva ekutora marara munharaunda yenyu:', cancelled: 'Zvakanzurwa.', again: 'Menyu huru'
+};
+const SIZE_ND = { small: 'Kuncane (small)', medium: 'Kuphakathi (medium)', large: 'Kukhulu (large)' };
+const SIZE_SN = { small: 'Diki (small)', medium: 'Pakati (medium)', large: 'Hombe (large)' };
+const LANG_BUTTONS = [['lang:en', 'English'], ['lang:nd', 'isiNdebele'], ['lang:sn', 'chiShona']];
+const LANG_NAMES = { nd: 'isiNdebele', sn: 'chiShona' };
+
+let wa;
+function waReset() {
+  wa = { lang: null, step: 'lang', draft: {}, msgs: [{ from: 'bot', text: 'Welcome to the Bulawayo Waste Hub demo.\nSawubona! Mhoro! Choose a language / Khetha ulimi / Sarudza mutauro:' }], buttons: LANG_BUTTONS.slice() };
+}
+function waT() { return T[wa.lang || 'en']; }
+function waBot(text, buttons, extra) { wa.msgs.push(Object.assign({ from: 'bot', text, time: Date.now() }, extra || {})); wa.buttons = buttons || []; }
+function waMe(text, extra) { wa.msgs.push(Object.assign({ from: 'me', text, time: Date.now() }, extra || {})); wa.buttons = []; }
+function waMenu() {
+  const t = waT(); wa.step = 'menu'; wa.draft = {};
+  waBot(t.menu, [['go:report', t.m_report], ['go:check', t.m_check], ['go:days', t.m_days]]);
+}
+function sizeLabel(k) { return wa.lang === 'nd' ? SIZE_ND[k] : wa.lang === 'sn' ? SIZE_SN[k] : SIZES[k]; }
+function waAction(a, label) {
+  const t = waT();
+  const [k, v] = a.split(':');
+  if (k === 'lang') { wa.lang = v; waMe(label); waMenu(); return; }
+  if (k === 'go') {
+    waMe(label);
+    if (v === 'report') { wa.step = 'photo'; wa.draft = { ward: state.ward, channel: 'WhatsApp' }; waBot(t.photo, [], { photos: true }); }
+    if (v === 'check') { wa.step = 'check'; waBot(t.askRef); }
+    if (v === 'days') {
+      const rows = store.where('collection_schedule', c => c.ward === state.ward);
+      waBot(t.days + '\n' + (rows.map(c => `• ${dayL(c.day, wa.lang)}: ${areaL(c.area, wa.lang)}${c.status !== 'On schedule' ? ' (' + schedL(c.status, wa.lang) + ')' : ''}`).join('\n') || '—'), [['menu:', t.again]]);
+    }
+    return;
+  }
+  if (k === 'menu') { waMe(label); waMenu(); return; }
+  if (k === 'photo') {
+    const p = PHOTOS[v];
+    wa.draft.photo = v; wa.draft.category = p.category; wa.draft.hazards = p.hazards.slice();
+    waMe('', { photo: v });
+    wa.step = 'ai';
+    waBot(t.ai(catL(p.category, wa.lang) + (p.hazards.length ? ', ' + hzL(p.hazards[0], wa.lang).toLowerCase() : '')), [['ai:yes', t.yes], ['ai:change', t.change]]);
+    return;
+  }
+  if (k === 'ai') { waMe(label); if (v === 'yes') return waAskSize(); return waAskType(); }
+  if (k === 'type') { waMe(label); wa.draft.category = v; return waAskSize(); }
+  if (k === 'size') {
+    waMe(label); wa.draft.size = v; wa.step = 'where';
+    waBot(t.where, SPOTS[wa.draft.ward].map((s, i) => ['where:' + i, spotL(wa.draft.ward, i, wa.lang)]));
+    return;
+  }
+  if (k === 'where') {
+    waMe(({ nd: 'Indawo', sn: 'Nzvimbo' }[wa.lang] || 'Location') + ': ' + label); wa.draft.spot = Number(v);
+    const spotHz = SPOTS[wa.draft.ward][wa.draft.spot].hz;
+    if (spotHz && !wa.draft.hazards.includes(spotHz)) wa.draft.hazards.push(spotHz);
+    wa.step = 'hazard';
+    waBot(t.hazard, [['hz:drain', hzL('drain', wa.lang)], ['hz:burning', hzL('burning', wa.lang)], ['hz:school', hzL('school', wa.lang)], ['hz:none', t.none]]);
+    return;
+  }
+  if (k === 'hz') {
+    waMe(label); if (v !== 'none' && !wa.draft.hazards.includes(v)) wa.draft.hazards.push(v);
+    const d = wa.draft;
+    const summary = [catL(d.category, wa.lang), sizeLabel(d.size), spotL(d.ward, d.spot, wa.lang), d.hazards.map(h => hzL(h, wa.lang)).join(', ')].filter(Boolean).join('\n');
+    wa.step = 'confirm';
+    waBot(t.confirm(summary), [['submit:yes', t.send], ['submit:no', t.cancel]]);
+    return;
+  }
+  if (k === 'submit') {
+    waMe(label);
+    if (v === 'no') { waBot(t.cancelled); waMenu(); return; }
+    const res = submitReport(wa.draft);
+    waBot(t.thanks(res.report.id));
+    if (res.mergedInto) waBot(t.merged(res.mergedInto.id));
+    else waBot(t.routed(store.get('partners', res.rule.partner).name, res.rule.hours));
+    wa.lastReport = res.mergedInto ? res.mergedInto.id : res.report.id;
+    waMenu();
+    return;
+  }
+}
+function waAskType() {
+  const t = waT(); wa.step = 'type';
+  waBot(t.pickType, Object.keys(CATEGORIES).map(key => ['type:' + key, catL(key, wa.lang)]));
+}
+function waAskSize() {
+  const t = waT(); wa.step = 'size';
+  waBot(t.size, ['small', 'medium', 'large'].map(z => ['size:' + z, sizeLabel(z)]));
+}
+function waText(text) {
+  const t = waT();
+  if (!text.trim()) return;
+  waMe(text);
+  if (wa.step === 'check') {
+    const digits = (text.match(/\d+/) || [''])[0];
+    const id = 'BWH-' + digits.padStart(5, '0');
+    const info = digits && statusText(store.get('reports', id));
+    if (!info) { waBot(t.notFound, [['menu:', t.again]]); return; }
+    let msg = t.status(id, stL(info.target.status, wa.lang) + (info.overdue ? ', ' + stL('overdue', wa.lang) : ''));
+    if (info.target.id !== id) msg += '\n' + UT[wa.lang || 'en'].merged(info.target.id);
+    if (info.target.status === 'fixed') msg += '\n✅';
+    waBot(msg, [['menu:', t.again]]);
+    return;
+  }
+  if (wa.step === 'lang') { waBot('Please choose English, isiNdebele or chiShona.', LANG_BUTTONS.slice()); return; }
+  waBot({ nd: 'Sicela usebenzise izinkinobho.', sn: 'Ndapota shandisai mabhatani.' }[wa.lang] || 'Please use the buttons above to answer.', wa.buttons.length ? wa.buttons : undefined);
+}
+function waUpload(dataUrl) {
+  const t = waT();
+  if (wa.step !== 'photo') return;
+  wa.draft.photo = 'upload'; wa.draft.uploadData = dataUrl; wa.draft.hazards = [];
+  waMe('', { upload: dataUrl });
+  waBot(t.uploadType);
+  waAskType();
+}
+function renderWa() {
+  const bubbles = wa.msgs.map(m => {
+    const media = m.photo ? `<span class="shot">${photoSvg(m.photo)}</span>` : m.upload ? `<span class="shot"><img src="${m.upload}" alt="Your photo"></span>` : '';
+    const grid = m.photos ? `<div class="photo-grid" style="margin-top:8px">${Object.keys(PHOTOS).map(k => `<button class="photo-btn" data-wa="photo:${k}" data-label="${esc(photoL(k, wa.lang))}">${photoSvg(k)}<span>${esc(photoL(k, wa.lang))}</span></button>`).join('')}</div>` : '';
+    return `<div class="bubble ${m.from}">${media}${esc(m.text)}${grid}${m.time ? `<div class="meta">${new Date(m.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>` : ''}</div>`;
+  }).join('');
+  const quick = wa.buttons.length ? `<div class="quick">${wa.buttons.map(([a, l]) => `<button data-wa="${a}" data-label="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : '';
+  return `<div class="phone" aria-label="Simulated WhatsApp chat">
+    <div class="phone-head"><span class="avatar"><svg width="18" height="18" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 11h12l-1.4 10.2a1.5 1.5 0 0 1-1.5 1.3h-6.2a1.5 1.5 0 0 1-1.5-1.3z M11 8.5h6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <div><b>Waste Hub bot</b><span>WhatsApp (simulated)</span></div>
+      <button class="btn" data-wa-restart style="margin-left:auto;background:transparent;color:inherit;border-color:currentColor">Restart</button></div>
+    ${LANG_NAMES[wa.lang] ? `<div class="lang-note">${LANG_NAMES[wa.lang]} wording is a draft, to be checked by a native speaker.</div>` : ''}
+    <div class="chat" id="wa-chat">${bubbles}${quick}</div>
+    <form class="composer" id="wa-form">
+      <label class="btn attach" title="Attach a photo" ${wa.step === 'photo' ? '' : 'hidden'}>Photo<input type="file" accept="image/*" id="wa-file"></label>
+      <input type="text" id="wa-text" autocomplete="off" placeholder="${wa.step === 'check' ? 'Type a reference number' : 'Type a message'}">
+      <button class="btn btn-primary" type="submit">Send</button>
+    </form>
+  </div>`;
+}
+
+/* ================= Stage 2: USSD simulator ================= */
+const USSD_CODE = '*123*77#'; // fictional short code for the demo
+let ussd;
+function ussdReset() { ussd = { screen: 'idle', input: '', draft: {}, text: '', lang: 'en' }; ussdShow(); }
+const short = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+const UT = {
+  en: {
+    menu: 'Bulawayo Waste Hub\n1 Report dumping\n2 Check a report\n3 Register as waste picker\n4 Collection days\n0 Exit',
+    where: 'Where is it?', type: 'Type of waste?',
+    size: 'How big?\n1 Small (few bags)\n2 Medium (wheelbarrow)\n3 Large (truckload)',
+    hz: 'Any of these?\n1 Blocking a drain\n2 Being burnt\n3 Near a school\n4 None',
+    confirm: 'Confirm:', sendCancel: '1 Send\n2 Cancel',
+    check: 'Enter reference number\n(e.g. 1041)',
+    pmat: (w) => `Register as waste picker in ${w}.\nMain material?\n1 PET plastic\n2 Cans\n3 Scrap metal\n4 Cardboard`,
+    days: 'Collection days:', back: '0 Back', none: 'No schedule yet.',
+    thanks: (id) => `Thank you. Ref ${id}.`, added: (p) => `Added to existing case ${p}.`, sent: (w) => `Sent to ${w}.`,
+    sms: 'You will get an SMS when it is fixed.', cancelled: 'Cancelled. Nothing was sent.', bye: 'Thank you. Goodbye.',
+    notFound: 'Reference not found.', merged: (p) => `(merged into ${p})`, overdue: 'overdue',
+    registered: (id, m) => `Registered as ${id}.\nBuyers of ${m} will contact you by SMS.`, ended: '[Session ended]'
+  },
+  nd: {
+    menu: 'Bulawayo Waste Hub\n1 Bika izibi\n2 Hlola umbiko\n3 Bhalisa njengomqoqi wezibi\n4 Insuku zokuqoqa\n0 Phuma',
+    where: 'Kungaphi?', type: 'Yizibi bani?',
+    size: 'Kukhulu kangakanani?\n1 Kuncane\n2 Kuphakathi\n3 Kukhulu',
+    hz: 'Kukhona yini?\n1 Kuvale umgelo\n2 Kuyatshiswa\n3 Eduze kwesikolo\n4 Kakukho',
+    confirm: 'Qinisekisa:', sendCancel: '1 Thumela\n2 Yekela',
+    check: 'Bhala inombolo yombiko\n(isib. 1041)',
+    pmat: (w) => `Bhalisa njengomqoqi wezibi e ${w}.\nUbutha ini?\n1 Iplastiki (PET)\n2 Amathini\n3 Insimbi\n4 Amakhadibhodi`,
+    days: 'Insuku zokuqoqa:', back: '0 Emuva', none: 'Kakukabi lohlelo.',
+    thanks: (id) => `Siyabonga. Inombolo ${id}.`, added: (p) => `Kuhlanganiswe lo ${p}.`, sent: (w) => `Kuthunyelwe ku ${w}.`,
+    sms: 'Uzathola i-SMS nxa sekulungisiwe.', cancelled: 'Kuyekelwe.', bye: 'Siyabonga. Sala kahle.',
+    notFound: 'Inombolo kayitholakalanga.', merged: (p) => `(kuhlanganiswe lo ${p})`, overdue: 'sekudlule isikhathi',
+    registered: (id, m) => `Ubhalisiwe ngu ${id}.\nAbathengi be ${m} bazakuthinta nge-SMS.`, ended: '[Kuphelile]'
+  },
+  sn: {
+    menu: 'Bulawayo Waste Hub\n1 Zivisa marara\n2 Ongorora mushumo\n3 Nyoresa semuunganidzi\n4 Mazuva ekutora\n0 Buda',
+    where: 'Ari kupi?', type: 'Imarara erudzii?',
+    size: 'Akakura zvakadii?\n1 Diki\n2 Pakati\n3 Hombe',
+    hz: 'Pane here?\n1 Avhara mugero\n2 Ari kupiswa\n3 Pedyo nechikoro\n4 Hapana',
+    confirm: 'Simbisa:', sendCancel: '1 Tumira\n2 Kanzura',
+    check: 'Nyora nhamba yemushumo\n(semuenzaniso 1041)',
+    pmat: (w) => `Nyoresa semuunganidzi wemarara mu ${w}.\nUnounganidza chii?\n1 Mapurasitiki (PET)\n2 Magaba\n3 Simbi\n4 Makadhibhodi`,
+    days: 'Mazuva ekutora:', back: '0 Dzokera', none: 'Hapana purogiramu parizvino.',
+    thanks: (id) => `Ndatenda. Nhamba ${id}.`, added: (p) => `Yabatanidzwa ne ${p}.`, sent: (w) => `Yatumirwa ku ${w}.`,
+    sms: 'Uchawana SMS kana zvagadziriswa.', cancelled: 'Zvakanzurwa.', bye: 'Ndatenda. Fambai zvakanaka.',
+    notFound: 'Nhamba haina kuwanikwa.', merged: (p) => `(yabatanidzwa ne ${p})`, overdue: 'yanonoka',
+    registered: (id, m) => `Wanyoreswa se ${id}.\nVatengi ve ${m} vachakubata ne SMS.`, ended: '[Zvapera]'
+  }
+};
+function ussdShow() {
+  const u = ussd, w = store.get('wards', state.ward), L = UT[u.lang] || UT.en;
+  const lines = {
+    idle: `Dial ${USSD_CODE}\nthen press Send.\n\n(Fictional demo code. Works on any basic phone, no data needed.)`,
+    lang: 'Bulawayo Waste Hub\n1 English\n2 isiNdebele\n3 chiShona',
+    menu: L.menu,
+    r_where: L.where + '\n' + SPOTS[state.ward].map((s, i) => `${i + 1} ${short(spotL(state.ward, i, u.lang), 30)}`).join('\n'),
+    r_type: L.type + '\n' + Object.keys(CATEGORIES).map((c, i) => `${i + 1} ${short(catL(c, u.lang), 28)}`).join('\n'),
+    r_size: L.size,
+    r_hz: L.hz,
+    r_confirm: () => `${L.confirm}\n${catL(u.draft.category, u.lang)}, ${({ nd: SIZE_ND, sn: SIZE_SN }[u.lang] || { small: 'small', medium: 'medium', large: 'large' })[u.draft.size].split(' (')[0]}\n${short(spotL(state.ward, u.draft.spot, u.lang), 34)}\n${L.sendCancel}`,
+    check: L.check,
+    p_mat: L.pmat(short(w.name, 20)),
+    days: () => L.days + '\n' + (store.where('collection_schedule', c => c.ward === state.ward).map(c => `${dayL(c.day, u.lang)}: ${short(areaL(c.area, u.lang), 26)}`).join('\n') || L.none) + '\n\n' + L.back
+  };
+  const v = lines[u.screen];
+  u.text = typeof v === 'function' ? v() : (v || u.text);
+}
+function ussdEnd(msg) { const L = UT[ussd.lang] || UT.en; ussd.screen = 'end'; ussd.text = msg + '\n\n' + L.ended; ussd.draft = {}; }
+function ussdSend() {
+  const u = ussd, inp = u.input.trim(); u.input = '';
+  const n = Number(inp), L = UT[u.lang] || UT.en;
+  switch (u.screen) {
+    case 'idle': case 'end':
+      if (inp.replace(/\s/g, '') === USSD_CODE) { u.screen = 'lang'; u.lang = 'en'; } else { u.screen = 'idle'; ussdShow(); u.text = `Unknown code. Dial ${USSD_CODE}`; return; }
+      break;
+    case 'lang': if (n >= 1 && n <= 3) { u.lang = ['en', 'nd', 'sn'][n - 1]; u.screen = 'menu'; } break;
+    case 'menu':
+      if (n === 1) { u.draft = { ward: state.ward, channel: 'USSD', hazards: [] }; u.screen = 'r_where'; }
+      else if (n === 2) u.screen = 'check';
+      else if (n === 3) u.screen = 'p_mat';
+      else if (n === 4) u.screen = 'days';
+      else if (inp === '0') return ussdEnd(L.bye);
+      break;
+    case 'r_where': if (n >= 1 && n <= SPOTS[state.ward].length) { u.draft.spot = n - 1; const hz = SPOTS[state.ward][n - 1].hz; if (hz) u.draft.hazards.push(hz); u.screen = 'r_type'; } break;
+    case 'r_type': { const keys = Object.keys(CATEGORIES); if (n >= 1 && n <= keys.length) { u.draft.category = keys[n - 1]; u.screen = 'r_size'; } break; }
+    case 'r_size': if (n >= 1 && n <= 3) { u.draft.size = ['small', 'medium', 'large'][n - 1]; u.screen = 'r_hz'; } break;
+    case 'r_hz': if (n >= 1 && n <= 4) { const hz = [null, 'drain', 'burning', 'school', null][n]; if (hz && !u.draft.hazards.includes(hz)) u.draft.hazards.push(hz); u.screen = 'r_confirm'; } break;
+    case 'r_confirm':
+      if (n === 1) {
+        const res = submitReport(u.draft);
+        return ussdEnd(L.thanks(res.report.id) + '\n' + (res.mergedInto ? L.added(res.mergedInto.id) : L.sent(partnerShort(res.rule.partner))) + '\n' + L.sms);
+      }
+      if (n === 2) return ussdEnd(L.cancelled);
+      break;
+    case 'check': {
+      const id = 'BWH-' + inp.replace(/\D/g, '').padStart(5, '0');
+      const info = inp && statusText(store.get('reports', id));
+      return ussdEnd(info ? `${id}: ${stL(info.target.status, u.lang)}${info.overdue ? ', ' + L.overdue : ''}${info.target.id !== id ? '\n' + L.merged(info.target.id) : ''}` : L.notFound);
+    }
+    case 'p_mat':
+      if (n >= 1 && n <= 4) {
+        const mat = ['PET plastic', 'cans', 'scrap metal', 'cardboard'][n - 1];
+        const ids = store.all('pickers').map(p => Number(p.id.slice(3)) || 0);
+        const id = 'PK-' + String(Math.max(0, ...ids) + 1).padStart(3, '0');
+        store.insert('pickers', { id, ward: state.ward, phone: 'basic phone (USSD)', materials: mat, registered: Date.now() });
+        logFeed('picker', `New waste picker ${id} registered by USSD in ${store.get('wards', state.ward).name} (${mat}).`, null);
+        return ussdEnd(L.registered(id, mat));
+      }
+      break;
+    case 'days': if (inp === '0') u.screen = 'menu'; break;
+  }
+  ussdShow();
+}
+function renderUssd() {
+  return `<div class="phone" aria-label="Simulated USSD basic phone">
+    <div class="phone-head"><div><b>Basic phone</b><span>USSD menu (simulated)</span></div>
+      <button class="btn" data-ussd-end style="margin-left:auto;background:transparent;color:inherit;border-color:currentColor">End</button></div>
+    <div class="ussd-body">
+      ${LANG_NAMES[ussd.lang] ? `<div class="lang-note" style="padding:0">${LANG_NAMES[ussd.lang]} wording is a draft, to be checked by a native speaker.</div>` : ''}
+      <div class="ussd-screen" aria-live="polite">${esc(ussd.text)}</div>
+      <form class="ussd-entry" id="ussd-form">
+        <input id="ussd-input" inputmode="tel" autocomplete="off" value="${esc(ussd.input)}" aria-label="Keypad entry" placeholder="${ussd.screen === 'idle' || ussd.screen === 'end' ? USSD_CODE : 'Enter a number'}">
+        <button class="btn btn-primary" type="submit">Send</button>
+      </form>
+      <div class="keypad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map(k => `<button data-key="${k}" aria-label="Key ${k}">${k}</button>`).join('')}</div>
+      <div style="display:flex;gap:6px"><button class="btn" data-key-clear style="flex:1">Clear</button>${ussd.screen === 'idle' || ussd.screen === 'end' ? `<button class="btn" data-ussd-dial style="flex:1">Type ${USSD_CODE}</button>` : ''}</div>
+    </div>
+  </div>`;
+}
+
+/* ================= Stage 2: the view ================= */
+function renderChat(el) {
+  const ward = store.get('wards', state.ward);
+  el.innerHTML = `
+    <div class="view-head"><div><h2>Report by WhatsApp or USSD</h2><p>Act as a resident in ${esc(ward.name)}. Send a report from either phone and watch it land on the ward map. Both phones are simulated; the real channels come later.</p></div></div>
+    <div class="sim-layout">
+      ${renderWa()}
+      ${renderUssd()}
+      <section class="panel"><h3>What the system did</h3>
+        ${feed.length ? `<ol class="feed">${feed.map(f => `<li class="k-${f.kind}"><time>${new Date(f.time).toLocaleTimeString('en-GB')}</time>${esc(f.text)}${f.reportId ? ` <button class="linkish" data-show="${f.reportId}">Show on map</button>` : ''}</li>`).join('')}</ol>`
+          : '<p class="empty" style="margin:0">Nothing yet. Send a report from either phone and each step appears here: received, AI triage, duplicate check, routing.</p>'}
+        <p class="hint">Tip: report a dump at the market stalls to see duplicate merging, or somewhere new to see a fresh case routed by the Charter.</p>
+      </section>
+    </div>`;
+}
+function resetSims() { waReset(); ussdReset(); feed.length = 0; }
+function afterRender() {
+  const c = document.getElementById('wa-chat');
+  if (c) c.scrollTop = c.scrollHeight;
+}
+waReset(); ussdReset();
+
+viewEl_stage2: {
+  const v = document.getElementById('view');
+  v.addEventListener('click', e => {
+    const t = e.target;
+    const w = t.closest('[data-wa]'); if (w) { waAction(w.dataset.wa, w.dataset.label || ''); render(); return; }
+    if (t.closest('[data-wa-restart]')) { waReset(); render(); return; }
+    const key = t.closest('[data-key]'); if (key) { ussd.input += key.dataset.key; render(); const i = document.getElementById('ussd-input'); if (i) i.focus(); return; }
+    if (t.closest('[data-key-clear]')) { ussd.input = ussd.input.slice(0, -1); render(); return; }
+    if (t.closest('[data-ussd-dial]')) { ussd.input = USSD_CODE; render(); return; }
+    if (t.closest('[data-ussd-end]')) { ussdReset(); render(); return; }
+    const sh = t.closest('[data-show]'); if (sh) { state.selected = sh.dataset.show; const r = store.get('reports', sh.dataset.show); if (r) state.ward = r.ward; state.view = 'map'; state.filter = 'all'; render(); window.scrollTo(0, 0); return; }
+  });
+  v.addEventListener('submit', e => {
+    e.preventDefault();
+    if (e.target.id === 'wa-form') { const i = document.getElementById('wa-text'); waText(i.value); render(); const n = document.getElementById('wa-text'); if (n) n.focus(); }
+    if (e.target.id === 'ussd-form') { ussd.input = document.getElementById('ussd-input').value; ussdSend(); render(); }
+  });
+  v.addEventListener('input', e => { if (e.target.id === 'ussd-input') ussd.input = e.target.value; });
+  v.addEventListener('change', e => {
+    if (e.target.id !== 'wa-file' || !e.target.files || !e.target.files[0]) return;
+    const f = e.target.files[0];
+    const img = new Image(), reader = new FileReader();
+    reader.onload = () => {
+      img.onload = () => {
+        // Shrink the photo so the demo stays light
+        const scale = Math.min(1, 480 / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas'); cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        waUpload(cv.toDataURL('image/jpeg', 0.8)); render();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+
+render();
+})();
+</script>
+</body>
+</html>
